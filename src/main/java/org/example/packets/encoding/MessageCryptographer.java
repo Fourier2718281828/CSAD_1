@@ -1,22 +1,22 @@
-package org.example.packets.cryptography;
+package org.example.packets.encoding;
 
-import org.example.exceptions.CryptographicalError;
+import org.example.exceptions.CodecException;
 import org.example.packets.data.Message;
 import org.example.utilities.TypeTraits;
 import org.example.utilities.bitwise.ByteGetter;
 import org.example.utilities.bitwise.IntegralBytePutter;
 
 
-public class MessageCryptographer implements Cryptographer<Message> {
+public class MessageCryptographer implements Codec<Message> {
     public MessageCryptographer(IntegralBytePutter bytesPutter) {
         this.bytesPutter = bytesPutter;
     }
 
     @Override
-    public byte[] encrypt(Message messagePOJO) {
-        final var type = messagePOJO.type();
-        final var userId = messagePOJO.userId();
-        final var message = messagePOJO.message();
+    public byte[] encode(Message encodable) {
+        final var type = encodable.type();
+        final var userId = encodable.userId();
+        final var message = encodable.message();
 
         final var cTypeSize = TypeTraits.sizeof(type);
         final var bUserIdSize = TypeTraits.sizeof(userId);
@@ -32,7 +32,7 @@ public class MessageCryptographer implements Cryptographer<Message> {
     }
 
     @Override
-    public Message decrypt(byte[] bytes) throws CryptographicalError {
+    public Message decode(byte[] bytes) throws CodecException {
         try {
             final var type = ByteGetter.getInt(0, bytes);
             final var userId = ByteGetter.getInt(4, bytes);
@@ -41,7 +41,7 @@ public class MessageCryptographer implements Cryptographer<Message> {
             final var message = new String(bMessage);
             return new Message(type, userId, message);
         } catch (RuntimeException e) {
-            throw new CryptographicalError("Invalid packet.");
+            throw new CodecException("Invalid packet.");
         }
     }
 

@@ -1,4 +1,4 @@
-package org.example.packets.cryptography.checksum;
+package org.example.packets.encoding.checksum;
 
 public interface Checksum16 {
     short evaluateChecksum(byte[] bytes);

@@ -1,4 +1,4 @@
-package org.example.packets.cryptography.checksum;
+package org.example.packets.encoding.checksum;
 
 public class CRC16 implements Checksum16 {
     @Override

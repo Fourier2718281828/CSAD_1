@@ -1,16 +1,16 @@
-package org.example.packets.cryptography;
+package org.example.packets.encoding;
 
-import org.example.exceptions.CryptographicalError;
-import org.example.packets.cryptography.checksum.Checksum16;
+import org.example.exceptions.CodecException;
+import org.example.packets.encoding.checksum.Checksum16;
 import org.example.packets.data.Message;
 import org.example.packets.data.Packet;
 import org.example.utilities.TypeTraits;
 import org.example.utilities.bitwise.ByteGetter;
 import org.example.utilities.bitwise.IntegralBytePutter;
 
-public class PacketCryptographer implements Cryptographer<Packet> {
+public class PacketCryptographer implements Codec<Packet> {
     public PacketCryptographer(
-            Cryptographer<Message> messageCryptographer,
+            Codec<Message> messageCryptographer,
             Checksum16 checksumEvaluator,
             IntegralBytePutter bytePutter) {
         this.messageCryptographer = messageCryptographer;
@@ -18,14 +18,14 @@ public class PacketCryptographer implements Cryptographer<Packet> {
         this.bytePutter = bytePutter;
     }
     @Override
-    public byte[] encrypt(Packet packet) {
+    public byte[] encode(Packet encodable) {
 
         final var bMagic = (byte) 0x13;
-        final var source = packet.source();
-        final var packetId = packet.packetId();
+        final var source = encodable.source();
+        final var packetId = encodable.packetId();
 
-        final var message = packet.message();
-        final var encryptedMessage = messageCryptographer.encrypt(message);
+        final var message = encodable.message();
+        final var encryptedMessage = messageCryptographer.encode(message);
         final var wLen = encryptedMessage.length;
 
         final var bMagicSize = TypeTraits.sizeof(bMagic);
@@ -54,7 +54,7 @@ public class PacketCryptographer implements Cryptographer<Packet> {
     }
 
     @Override
-    public Packet decrypt(byte[] bytes) throws CryptographicalError {
+    public Packet decode(byte[] bytes) throws CodecException {
         try {
             final var bMagic = bytes[0];
             final var bSrc = bytes[1];
@@ -70,23 +70,23 @@ public class PacketCryptographer implements Cryptographer<Packet> {
             final var sndChecksumEvaluated = checksumEvaluator.evaluateChecksum(bMsq);
 
             if(16 + wLen > bytes.length)
-                throw new CryptographicalError("Packet length limit exceeded.");
+                throw new CodecException("Packet length limit exceeded.");
             if(bMagic != (byte) 0x13)
-                throw new CryptographicalError("Magic byte mismatch.");
+                throw new CodecException("Magic byte mismatch.");
             if(wCrc16First != fstChecksumEvaluated)
-                throw new CryptographicalError("First checksum mismatch.");
+                throw new CodecException("First checksum mismatch.");
             if(wCrc16Second != sndChecksumEvaluated)
-                throw new CryptographicalError("Second checksum mismatch.");
+                throw new CodecException("Second checksum mismatch.");
 
-            final var decryptedMessage = messageCryptographer.decrypt(bMsq);
+            final var decryptedMessage = messageCryptographer.decode(bMsq);
             return new Packet(bSrc, bPktId, decryptedMessage);
 
         } catch (RuntimeException e) {
-            throw new CryptographicalError("Invalid packet length.");
+            throw new CodecException("Invalid packet length.");
         }
     }
 
-    private final Cryptographer<Message> messageCryptographer;
+    private final Codec<Message> messageCryptographer;
     private final Checksum16 checksumEvaluator;
     private final IntegralBytePutter bytePutter;
 }

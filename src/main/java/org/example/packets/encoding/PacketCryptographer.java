@@ -8,26 +8,34 @@ import org.example.utilities.TypeTraits;
 import org.example.utilities.bitwise.ByteGetter;
 import org.example.utilities.bitwise.IntegralBytePutter;
 
+import java.util.Optional;
+
 public class PacketCryptographer implements Codec<Packet> {
     public PacketCryptographer(
-            Codec<Message> messageCryptographer,
+            Codec<Message> messageCodec,
             Checksum16 checksumEvaluator,
             IntegralBytePutter bytePutter) {
-        this.messageCryptographer = messageCryptographer;
+        this.messageCodec = messageCodec;
         this.checksumEvaluator = checksumEvaluator;
         this.bytePutter = bytePutter;
     }
     @Override
-    public byte[] encode(Packet encodable) {
+    public Optional<byte[]> encode(Packet encodable) {
 
         final var bMagic = (byte) 0x13;
         final var source = encodable.source();
         final var packetId = encodable.packetId();
 
         final var message = encodable.message();
-        final var encryptedMessage = messageCryptographer.encode(message);
-        final var wLen = encryptedMessage.length;
+        final var encryptedMessageOpt = messageCodec.encode(message);
+        byte[] encryptedMessage;
 
+        if(encryptedMessageOpt.isPresent())
+            encryptedMessage = encryptedMessageOpt.get();
+        else
+            return Optional.empty();
+
+        final var wLen = encryptedMessage.length;
         final var bMagicSize = TypeTraits.sizeof(bMagic);
         final var bSrcSize = TypeTraits.sizeof(source);
         final var bPktIdSize = TypeTraits.sizeof(packetId);
@@ -50,11 +58,11 @@ public class PacketCryptographer implements Codec<Packet> {
         assert(TypeTraits.sizeof(wCrc16First) == crcSize);
         assert(TypeTraits.sizeof(wCrc16Second) == crcSize);
 
-        return res;
+        return Optional.of(res);
     }
 
     @Override
-    public Packet decode(byte[] bytes) throws CodecException {
+    public Optional<Packet> decode(byte[] bytes) throws CodecException {
         try {
             final var bMagic = bytes[0];
             final var bSrc = bytes[1];
@@ -78,15 +86,17 @@ public class PacketCryptographer implements Codec<Packet> {
             if(wCrc16Second != sndChecksumEvaluated)
                 throw new CodecException("Second checksum mismatch.");
 
-            final var decryptedMessage = messageCryptographer.decode(bMsq);
-            return new Packet(bSrc, bPktId, decryptedMessage);
+            final var decryptedMessage = messageCodec.decode(bMsq);
+            return decryptedMessage.isPresent()
+                    ? Optional.of(new Packet(bSrc, bPktId, decryptedMessage.get()))
+                    : Optional.empty();
 
         } catch (RuntimeException e) {
             throw new CodecException("Invalid packet length.");
         }
     }
 
-    private final Codec<Message> messageCryptographer;
+    private final Codec<Message> messageCodec;
     private final Checksum16 checksumEvaluator;
     private final IntegralBytePutter bytePutter;
 }

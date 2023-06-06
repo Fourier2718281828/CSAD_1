@@ -1,7 +1,10 @@
 package org.example.packets.encoding;
 
 import org.example.exceptions.CodecException;
+import org.example.packets.data.Message;
+
+import java.util.Optional;
 
 public interface Decoder<Decodable> {
-    Decodable decode(byte[] bytes) throws CodecException;
+    Optional<Decodable> decode(byte[] bytes) throws CodecException;
 }

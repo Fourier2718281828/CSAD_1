@@ -1,4 +1,4 @@
 package org.example.packets.encoding.encryption;
 
-public interface KeyCryptographer extends KeyEncryptor, KeyDecryptor{
+public interface KeyCryptographer extends KeyHolder, Cryptographer{
 }

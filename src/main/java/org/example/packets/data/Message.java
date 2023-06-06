@@ -1,7 +1,7 @@
 package org.example.packets.data;
 
 public record Message(
-        int cType,
-        int bUserId,
-        byte[] message
+        int type,
+        int userId,
+        String message
 ) {}

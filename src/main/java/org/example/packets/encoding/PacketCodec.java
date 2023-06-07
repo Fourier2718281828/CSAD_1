@@ -8,8 +8,6 @@ import org.example.utilities.TypeTraits;
 import org.example.utilities.bitwise.ByteGetter;
 import org.example.utilities.bitwise.IntegralBytePutter;
 
-import java.util.Optional;
-
 public class PacketCodec implements Codec<Packet> {
     public PacketCodec(
             Codec<Message> messageCodec,
@@ -20,49 +18,45 @@ public class PacketCodec implements Codec<Packet> {
         this.bytePutter = bytePutter;
     }
     @Override
-    public Optional<byte[]> encode(Packet encodable) {
+    public byte[] encode(Packet encodable) throws CodecException {
+        try {
+            final var message = encodable.message();
+            final var encryptedMessage = messageCodec.encode(message);
+            final var bMagic = (byte) 0x13;
+            final var source = encodable.source();
+            final var packetId = encodable.packetId();
 
-        final var bMagic = (byte) 0x13;
-        final var source = encodable.source();
-        final var packetId = encodable.packetId();
+            final var wLen = encryptedMessage.length;
+            final var bMagicSize = TypeTraits.sizeof(bMagic);
+            final var bSrcSize = TypeTraits.sizeof(source);
+            final var bPktIdSize = TypeTraits.sizeof(packetId);
+            final var wLenSize = TypeTraits.sizeof(wLen);
+            final var crcSize = 2;
+            final var resLength = bMagicSize + bSrcSize + bPktIdSize + wLenSize + crcSize + wLen + crcSize;
 
-        final var message = encodable.message();
-        final var encryptedMessageOpt = messageCodec.encode(message);
-        byte[] encryptedMessage;
+            byte[] res = new byte[resLength];
+            bytePutter.putToBytes(0, res, bMagic);
+            bytePutter.putToBytes(bMagicSize, res, source);
+            bytePutter.putToBytes(bMagicSize + bSrcSize, res, packetId);
+            bytePutter.putToBytes(bMagicSize + bSrcSize + bPktIdSize, res, wLen);
+            bytePutter.putToBytes(bMagicSize + bSrcSize + bPktIdSize + wLenSize + crcSize, res, encryptedMessage);
 
-        if(encryptedMessageOpt.isPresent())
-            encryptedMessage = encryptedMessageOpt.get();
-        else
-            return Optional.empty();
+            final var wCrc16First = checksumEvaluator.evaluateChecksumRange(res, 0, 14);
+            final var wCrc16Second = checksumEvaluator.evaluateChecksum(encryptedMessage);
+            bytePutter.putToBytes(bMagicSize + bSrcSize + bPktIdSize + wLenSize, res, wCrc16First);
+            bytePutter.putToBytes(res.length - crcSize, res, wCrc16Second);
 
-        final var wLen = encryptedMessage.length;
-        final var bMagicSize = TypeTraits.sizeof(bMagic);
-        final var bSrcSize = TypeTraits.sizeof(source);
-        final var bPktIdSize = TypeTraits.sizeof(packetId);
-        final var wLenSize = TypeTraits.sizeof(wLen);
-        final var crcSize = 2;
-        final var resLength = bMagicSize + bSrcSize + bPktIdSize + wLenSize + crcSize + wLen + crcSize;
+            assert (TypeTraits.sizeof(wCrc16First) == crcSize);
+            assert (TypeTraits.sizeof(wCrc16Second) == crcSize);
 
-        byte[] res = new byte[resLength];
-        bytePutter.putToBytes(0, res, bMagic);
-        bytePutter.putToBytes(bMagicSize, res, source);
-        bytePutter.putToBytes(bMagicSize + bSrcSize, res, packetId);
-        bytePutter.putToBytes(bMagicSize + bSrcSize + bPktIdSize, res, wLen);
-        bytePutter.putToBytes(bMagicSize + bSrcSize + bPktIdSize + wLenSize + crcSize, res, encryptedMessage);
-
-        final var wCrc16First  = checksumEvaluator.evaluateChecksumRange(res, 0, 14);
-        final var wCrc16Second = checksumEvaluator.evaluateChecksum(encryptedMessage);
-        bytePutter.putToBytes(bMagicSize + bSrcSize + bPktIdSize + wLenSize, res, wCrc16First);
-        bytePutter.putToBytes(res.length - crcSize, res, wCrc16Second);
-
-        assert(TypeTraits.sizeof(wCrc16First) == crcSize);
-        assert(TypeTraits.sizeof(wCrc16Second) == crcSize);
-
-        return Optional.of(res);
+            return res;
+        } catch (CodecException e) {
+            throw new CodecException("Failed to encode a message while encoding a packet: " + e.getMessage());
+        }
     }
 
     @Override
-    public Optional<Packet> decode(byte[] bytes) throws CodecException {
+    public Packet decode(byte[] bytes) throws CodecException {
         try {
             final var bMagic = bytes[0];
             final var bSrc = bytes[1];
@@ -87,7 +81,7 @@ public class PacketCodec implements Codec<Packet> {
                 throw new CodecException("Second checksum mismatch.");
 
             final var decryptedMessage = messageCodec.decode(bMsq);
-            return decryptedMessage.map(message -> new Packet(bSrc, bPktId, message));
+            return new Packet(bSrc, bPktId, decryptedMessage);
 
         } catch (RuntimeException e) {
             throw new CodecException("Invalid packet length.");

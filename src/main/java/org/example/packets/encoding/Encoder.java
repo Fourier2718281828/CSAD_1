@@ -1,7 +1,7 @@
 package org.example.packets.encoding;
 
-import java.util.Optional;
+import org.example.exceptions.CodecException;
 
 public interface Encoder<Encodable> {
-    Optional<byte[]> encode(Encodable encodable);
+    byte[] encode(Encodable encodable) throws CodecException;
 }

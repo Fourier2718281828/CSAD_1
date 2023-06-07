@@ -8,9 +8,6 @@ import org.example.utilities.TypeTraits;
 import org.example.utilities.bitwise.ByteGetter;
 import org.example.utilities.bitwise.IntegralBytePutter;
 
-import java.util.Optional;
-
-
 public class MessageCodec implements Codec<Message> {
     public MessageCodec(IntegralBytePutter bytesPutter, Cryptographer messageCryptographer) {
         this.bytesPutter = bytesPutter;
@@ -18,7 +15,7 @@ public class MessageCodec implements Codec<Message> {
     }
 
     @Override
-    public Optional<byte[]> encode(Message encodable) {
+    public byte[] encode(Message encodable) throws CodecException {
         final var type = encodable.type();
         final var userId = encodable.userId();
         final var message = encodable.message();
@@ -37,25 +34,28 @@ public class MessageCodec implements Codec<Message> {
         try {
             res = messageCryptographer.encrypt(res);
         } catch (CryptographicException e) {
-            return Optional.empty();
+            throw new CodecException("Failed to encrypt a message: " + e.getMessage());
         }
 
-        return Optional.of(res);
+        return res;
     }
 
     @Override
-    public Optional<Message> decode(byte[] input) throws CodecException {
+    public Message decode(byte[] input) throws CodecException {
         try {
-            final var bytes = messageCryptographer.decrypt(input);
+            final byte[] bytes = messageCryptographer.decrypt(input);
             final var type = ByteGetter.getInt(0, bytes);
             final var userId = ByteGetter.getInt(4, bytes);
             final var offset = TypeTraits.sizeof(type) + TypeTraits.sizeof(userId);
             final var bMessage = ByteGetter.getBytes(offset, bytes, bytes.length - offset);
             final var message = new String(bMessage);
-            return Optional.of(new Message(type, userId, message));
-        } catch (CryptographicException | RuntimeException e) {
-            return Optional.empty();
+            return new Message(type, userId, message);
+        } catch (CryptographicException e) {
+            throw new CodecException("Message decryption failed");
+        } catch (RuntimeException e) {
+            throw new CodecException("ByteGetter exception: " + e.getMessage());
         }
+
     }
 
     private final IntegralBytePutter bytesPutter;

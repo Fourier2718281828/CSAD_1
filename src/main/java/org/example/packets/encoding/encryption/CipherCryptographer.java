@@ -19,6 +19,7 @@ public class CipherCryptographer implements KeyCryptographer {
             this.encryptor = Cipher.getInstance("AES");
             this.decryptor = Cipher.getInstance("AES");
             encryptor.init(Cipher.ENCRYPT_MODE, key);
+            decryptor.init(Cipher.DECRYPT_MODE, key);
         } catch (NoSuchPaddingException | NoSuchAlgorithmException e) {
             throw new RuntimeException(e);
         }

@@ -87,9 +87,7 @@ public class PacketCryptographer implements Codec<Packet> {
                 throw new CodecException("Second checksum mismatch.");
 
             final var decryptedMessage = messageCodec.decode(bMsq);
-            return decryptedMessage.isPresent()
-                    ? Optional.of(new Packet(bSrc, bPktId, decryptedMessage.get()))
-                    : Optional.empty();
+            return decryptedMessage.map(message -> new Packet(bSrc, bPktId, message));
 
         } catch (RuntimeException e) {
             throw new CodecException("Invalid packet length.");

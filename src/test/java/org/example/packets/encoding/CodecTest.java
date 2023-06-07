@@ -45,6 +45,7 @@ class CodecTest {
     }
 
     @Test
+    @DisplayName("Decoding error handling testing")
     void decodeErrorHandling() {
         try {
             var factory = new PacketCodecFactory();
@@ -63,6 +64,67 @@ class CodecTest {
             }
         }
     }
+
+
+//    @Test
+//    @DisplayName("Decoding checksum match testing")
+//    void decodeChecksumTest() {
+//        try {
+//            var cryptographer = new CipherCryptographer();
+//            var message = "Capybara";
+//            var packet = new Packet((byte)8, 6, new Message(7, 2, message));
+//            var encryptedBytes = cryptographer.encrypt(message.getBytes());
+//            var messageCodec = new MessageCodec(new BigEndianBytePutter(), cryptographer);
+//            var packetCodec = new PacketCodec(messageCodec, new CRC16(), new BigEndianBytePutter());
+//            var encoded = packetCodec.encode(packet);
+//            System.out.println(encoded.length);
+//            var encrSize = encryptedBytes.length;
+//            var wrongCrc = new byte[encoded.length];
+//            wrongCrc[0] = 0x13;
+//            wrongCrc[1] = packet.source();
+//
+//            wrongCrc[2] = 0x00;
+//            wrongCrc[3] = 0x00;
+//            wrongCrc[4] = 0x00;
+//            wrongCrc[5] = 0x00;
+//            wrongCrc[6] = 0x00;
+//            wrongCrc[7] = 0x00;
+//            wrongCrc[8] = 0x00;
+//            wrongCrc[9] = (byte) packet.packetId();
+//
+//            wrongCrc[10] = 0x00;
+//            wrongCrc[11] = 0x00;
+//            wrongCrc[12] = 0x00;
+//            wrongCrc[13] = 32;
+//
+//            wrongCrc[14] = encryptedBytes[14];
+//            wrongCrc[15] = encryptedBytes[15];
+//
+//            //bMsq:
+//            wrongCrc[16] = 0x00;
+//            wrongCrc[17] = 0x00;
+//            wrongCrc[18] = 0x00;
+//            wrongCrc[19] = (byte) packet.message().type();
+//
+//            wrongCrc[20] = 0x00;
+//            wrongCrc[21] = 0x00;
+//            wrongCrc[22] = 0x00;
+//            wrongCrc[23] = (byte) packet.message().userId();
+//
+//            System.arraycopy(encoded, 24, wrongCrc, 24, encrSize);
+//
+//            wrongCrc[encoded.length - 2] = encoded[encoded.length - 2];
+//            wrongCrc[encoded.length - 1] = encoded[encoded.length - 1];
+//
+//            assertArrayEquals(encoded, wrongCrc);
+//        } catch (InvalidKeyException | NoSuchAlgorithmException e) {
+//            fail("Unable to construct cryptographer.");
+//        } catch (CryptographicException e) {
+//            fail("Failed to encrypt a string.");
+//        } catch (CodecException e) {
+//            fail("Unable to ecode a packet");
+//        }
+//    }
 
 //    void assignChecksum(byte[] packet) {
 //        final var checksumEvaluator = new CRC16();

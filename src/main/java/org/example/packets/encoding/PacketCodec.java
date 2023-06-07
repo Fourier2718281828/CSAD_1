@@ -10,8 +10,8 @@ import org.example.utilities.bitwise.IntegralBytePutter;
 
 import java.util.Optional;
 
-public class PacketCryptographer implements Codec<Packet> {
-    public PacketCryptographer(
+public class PacketCodec implements Codec<Packet> {
+    public PacketCodec(
             Codec<Message> messageCodec,
             Checksum16 checksumEvaluator,
             IntegralBytePutter bytePutter) {

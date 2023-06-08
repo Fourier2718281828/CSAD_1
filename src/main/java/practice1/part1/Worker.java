@@ -1,4 +1,4 @@
-package practice1;
+package practice1.part1;
 
 public class Worker extends Thread{
 

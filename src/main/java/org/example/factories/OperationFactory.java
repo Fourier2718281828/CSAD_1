@@ -3,32 +3,39 @@ package org.example.factories;
 import org.example.exceptions.CreationException;
 import org.example.exceptions.HolderException;
 import org.example.hw2.operations.Operation;
-import org.example.utilities.ConstructionHolder;
+import org.example.utilities.Holder;
+import org.example.utilities.StandardHolder;
 
-import java.util.Map;
-import java.util.TreeMap;
+import java.util.Optional;
 import java.util.function.Supplier;
 
 public class OperationFactory implements SingleParamFactory<Operation, Integer>,
-        ConstructionHolder<Integer, Operation> {
+        Holder<Integer, Supplier<Operation>> {
     public OperationFactory() {
-        this.creationArchive = new TreeMap<>();
+        this.holder = new StandardHolder<>();
     }
 
     @Override
     public Operation create(Integer operationId) throws CreationException {
-        if(!creationArchive.containsKey(operationId))
-            throw new CreationException("Non-existent operation id.");
-        var constructor = creationArchive.get(operationId);
+        var constructor = getConstructor(operationId)
+                .orElseThrow(() -> new CreationException("Non-existent operation id."));
         return constructor.get();
     }
 
     @Override
     public void hold(Integer key, Supplier<Operation> constructor) throws HolderException {
-        if(creationArchive.containsKey(key))
-            throw new HolderException("Constructor related to the key already held.");
-        creationArchive.put(key, constructor);
+        holder.hold(key, constructor);
     }
 
-    private Map<Integer, Supplier<Operation>> creationArchive;
+    @Override
+    public void release(Integer key) throws HolderException {
+        holder.release(key);
+    }
+
+    @Override
+    public Optional<Supplier<Operation>> getConstructor(Integer integer) {
+        return holder.getConstructor(integer);
+    }
+
+    private final Holder<Integer, Supplier<Operation>> holder;
 }

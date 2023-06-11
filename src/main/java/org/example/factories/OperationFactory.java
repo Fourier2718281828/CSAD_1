@@ -11,8 +11,15 @@ import java.util.function.Supplier;
 
 public class OperationFactory implements SingleParamFactory<Operation, Integer>,
         Holder<Integer, Supplier<Operation>> {
-    public OperationFactory() {
+    private OperationFactory() {
         this.holder = new StandardHolder<>();
+    }
+
+    public static OperationFactory getInstance() {
+        if(instance == null) {
+            instance = new OperationFactory();
+        }
+        return instance;
     }
 
     @Override
@@ -38,4 +45,5 @@ public class OperationFactory implements SingleParamFactory<Operation, Integer>,
     }
 
     private final Holder<Integer, Supplier<Operation>> holder;
+    private static OperationFactory instance;
 }

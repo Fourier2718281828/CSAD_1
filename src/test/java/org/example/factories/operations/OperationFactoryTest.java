@@ -3,6 +3,7 @@ package org.example.factories.operations;
 import org.example.exceptions.CreationException;
 import org.example.exceptions.HolderException;
 import org.example.hw2.operations.Operation;
+import org.example.hw2.operations.OperationParams;
 import org.example.hw2.operations.Operations;
 import org.example.hw2.storages.GroupedGoodStorage;
 import org.example.hw2.storages.Storage;
@@ -47,7 +48,7 @@ class OperationFactoryTest {
         try {
             OperationFactory.hold(Operations.GET_GOOD_QUANTITY, s -> new Operation() {
                 @Override
-                public void execute() {
+                public void execute(OperationParams params) {
 
                 }
 

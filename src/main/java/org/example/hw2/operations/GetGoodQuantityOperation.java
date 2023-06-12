@@ -11,8 +11,10 @@ public class GetGoodQuantityOperation implements Operation {
     }
 
     @Override
-    public void execute() {
-
+    public void execute(OperationParams params) {
+        var goodName = params.goodName();
+        var good = storage.getGood(goodName);
+        result = good.orElseThrow().getQuantity();
     }
 
     @Override

@@ -6,32 +6,37 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.TreeMap;
 
-public class StandardHolder<Key extends Comparable<Key>, Constructable>
-        implements Holder<Key, Constructable> {
+public class StandardHolder<Key extends Comparable<Key>, Holdable>
+        implements Holder<Key, Holdable> {
     public StandardHolder() {
-        creationArchive = new TreeMap<>();
+        keyToHoldable = new TreeMap<>();
     }
 
     @Override
-    public void hold(Key key, Constructable constructor) throws HolderException {
-        if(creationArchive.containsKey(key))
-            throw new HolderException("Constructor related to the key already held.");
-        creationArchive.put(key, constructor);
+    public void hold(Key key, Holdable holdable) throws HolderException {
+        if(keyToHoldable.containsKey(key))
+            throw new HolderException("Holdable related to the key " + key.toString() + " already held.");
+        keyToHoldable.put(key, holdable);
     }
 
     @Override
     public void release(Key key) throws HolderException {
-        if(!creationArchive.containsKey(key))
-            throw new HolderException("Constructor related to the key already held.");
-        creationArchive.remove(key);
+        if(!keyToHoldable.containsKey(key))
+            throw new HolderException("Holdable related to the key " + key.toString() + " already held.");
+        keyToHoldable.remove(key);
     }
 
     @Override
-    public Optional<Constructable> getConstructor(Key key) {
-        if(!creationArchive.containsKey(key))
+    public Optional<Holdable> getHoldable(Key key) {
+        if(!keyToHoldable.containsKey(key))
             return Optional.empty();
-        return Optional.of(creationArchive.get(key));
+        return Optional.of(keyToHoldable.get(key));
     }
 
-    private final Map<Key, Constructable> creationArchive;
+    @Override
+    public boolean holds(Key key) {
+        return keyToHoldable.containsKey(key);
+    }
+
+    private final Map<Key, Holdable> keyToHoldable;
 }

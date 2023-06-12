@@ -7,7 +7,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
 
-public class Storage implements GoodStorage, GroupStorage {
+public class Storage implements GroupedGoodStorage {
     public Storage() {
         groups = new LinkedList<>();
     }

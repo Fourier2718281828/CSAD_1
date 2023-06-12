@@ -2,19 +2,12 @@ package org.example.hw2.operations;
 
 import org.example.hw2.storages.GroupedGoodStorage;
 
-public class GetGoodQuantityOperation implements Operation {
-//    static {
-//        try {
-//            OperationFactory
-//                    .getInstance()
-//                    .hold(Operations.GET_GOOD_QUANTITY.ordinal(), GetGoodQuantityOperation::new);
-//        } catch (HolderException e) {
-//            throw new RuntimeException(e);
-//        }
-//    }
+import java.util.Optional;
 
+public class GetGoodQuantityOperation implements Operation {
     public GetGoodQuantityOperation(GroupedGoodStorage storage) {
         this.storage = storage;
+        this.result = null;
     }
 
     @Override
@@ -22,5 +15,11 @@ public class GetGoodQuantityOperation implements Operation {
 
     }
 
+    @Override
+    public Optional<Integer> getResult() {
+        return Optional.ofNullable(result);
+    }
+
+    private Integer result;
     private final GroupedGoodStorage storage;
 }

@@ -2,9 +2,12 @@ package org.example.hw2.operations;
 
 import org.example.hw2.storages.GroupedGoodStorage;
 
+import java.util.Optional;
+
 public class SubtractGoodQuantityOperation implements Operation{
     public SubtractGoodQuantityOperation(GroupedGoodStorage storage) {
         this.storage = storage;
+        this.result = null;
     }
 
     @Override
@@ -12,5 +15,11 @@ public class SubtractGoodQuantityOperation implements Operation{
 
     }
 
+    @Override
+    public Optional<Integer> getResult() {
+        return Optional.ofNullable(result);
+    }
+
+    private Integer result;
     private final GroupedGoodStorage storage;
 }

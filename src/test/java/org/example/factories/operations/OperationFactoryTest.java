@@ -8,6 +8,8 @@ import org.example.hw2.storages.GroupedGoodStorage;
 import org.example.hw2.storages.Storage;
 import org.junit.jupiter.api.*;
 
+import java.util.Optional;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 class OperationFactoryTest {
@@ -48,8 +50,13 @@ class OperationFactoryTest {
                 public void execute() {
 
                 }
+
+                @Override
+                public Optional<Integer> getResult() {
+                    return Optional.of(2);
+                }
             });
-            fail("GetGoodQuantity enum val must already be held. However it isn't.");
+            fail("GetGoodQuantity enum val must have already been held. However it isn't.");
         } catch (HolderException ignored) {
         }
     }

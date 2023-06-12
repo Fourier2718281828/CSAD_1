@@ -1,9 +1,13 @@
 package org.example.hw2.goods;
 
-public class StandardGoods implements Good {
-    public StandardGoods(String name) {
+public class StandardGood implements Good {
+    public StandardGood(String name) {
+        this(name, 0);
+    }
+
+    public StandardGood(String name, int quantity) {
         this.name = name;
-        this.quantity = 0;
+        this.quantity = quantity;
     }
 
     @Override
@@ -27,6 +31,6 @@ public class StandardGoods implements Good {
         return quantity >= 0;
     }
 
-    private String name;
+    private final String name;
     private int quantity;
 }

@@ -10,14 +10,13 @@ import org.example.hw2.storages.Storage;
 import org.junit.jupiter.api.*;
 
 import java.util.Optional;
-import java.util.concurrent.ConcurrentSkipListMap;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 class OperationFactoryTest {
 
     public OperationFactoryTest() {
-        this.storage = new Storage(new ConcurrentSkipListMap<>());
+        this.storage = new Storage();
     }
 
     @BeforeEach

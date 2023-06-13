@@ -3,7 +3,6 @@ package org.example.hw2.basis.impl;
 import org.example.exceptions.CodecException;
 import org.example.exceptions.CreationException;
 import org.example.factories.SingleParamFactory;
-import org.example.hw2.basis.Encryptor;
 import org.example.hw2.basis.Processor;
 import org.example.hw2.basis.Sender;
 import org.example.hw2.operations.Operation;
@@ -11,13 +10,14 @@ import org.example.hw2.operations.OperationParams;
 import org.example.hw2.operations.Operations;
 import org.example.packets.data.Message;
 import org.example.packets.data.Packet;
+import org.example.packets.encoding.EncryptionProvider;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 
 public class StandardProcessor implements Processor {
     public StandardProcessor(
-            Encryptor encryptor,
+            EncryptionProvider<Packet> encryptor,
             Sender sender,
             SingleParamFactory<Operation, Operations> operationFactory) {
         this.encryptor = encryptor;
@@ -61,7 +61,7 @@ public class StandardProcessor implements Processor {
         }
     }
 
-    private final Encryptor encryptor;
+    private final EncryptionProvider<Packet> encryptor;
     private final Sender sender;
     private final SingleParamFactory<Operation, Operations> operationFactory;
 }

@@ -3,12 +3,11 @@ package org.example.hw2.basis.impl;
 import org.example.exceptions.CodecException;
 import org.example.hw2.basis.Decryptor;
 import org.example.hw2.basis.Processor;
-import org.example.hw2.basis.Sender;
 import org.example.packets.data.Packet;
 import org.example.packets.encoding.Codec;
 
 public class StandardDecryptor implements Decryptor {
-    public StandardDecryptor(Codec<Packet> codec, Processor processor, Sender sender) {
+    public StandardDecryptor(Codec<Packet> codec, Processor processor) {
         this.codec = codec;
         this.processor = processor;
     }

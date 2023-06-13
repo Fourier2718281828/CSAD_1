@@ -6,8 +6,8 @@ import org.example.packets.data.Packet;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-public class MultythreadedProcessor implements Processor {
-    public MultythreadedProcessor(Processor processor) {
+public class MultyThreadedProcessor implements Processor {
+    public MultyThreadedProcessor(Processor processor) {
         this.processor = processor;
         threadPool = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
     }

@@ -5,8 +5,8 @@ import org.example.hw2.basis.Decryptor;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-public class MultythreadedDecryptor implements Decryptor {
-    public MultythreadedDecryptor(Decryptor decryptor) {
+public class MultyThreadedDecryptor implements Decryptor {
+    public MultyThreadedDecryptor(Decryptor decryptor) {
         this.decryptor = decryptor;
         this.threadPool = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
     }

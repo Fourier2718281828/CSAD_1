@@ -36,7 +36,7 @@ class CodecTest {
     void decodingEncodedMessage(Message message) {
         try {
             var messageCodec = new MessageCodecFactory().create();
-            var encoded = messageCodec.encode(message);
+            var encoded = messageCodec.encrypt(message);
             var decoded = messageCodec.decode(encoded);
             assertEquals(decoded, message);
         } catch (CreationException | CodecException e) {

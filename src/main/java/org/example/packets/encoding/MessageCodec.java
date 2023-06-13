@@ -15,10 +15,10 @@ public class MessageCodec implements Codec<Message> {
     }
 
     @Override
-    public byte[] encode(Message encodable) throws CodecException {
-        final var type = encodable.type();
-        final var userId = encodable.userId();
-        final var message = encodable.message();
+    public byte[] encrypt(Message encryptable) throws CodecException {
+        final var type = encryptable.type();
+        final var userId = encryptable.userId();
+        final var message = encryptable.message();
 
 
         final var cTypeSize = TypeTraits.sizeof(type);

@@ -1,5 +1,6 @@
 package org.example.hw2.operations;
 
+import org.example.exceptions.StorageException;
 import org.example.hw2.goods.StandardGood;
 import org.example.hw2.storages.GroupedGoodStorage;
 
@@ -20,7 +21,11 @@ public class SubtractGoodQuantityOperation implements Operation{
         var newQuantity = quantity - params.getQuantity();
         if(newQuantity < 0)
             throw new RuntimeException("Inappropriate quantity.");
-        storage.updateGood(new StandardGood(goodName, newQuantity, price));
+        try {
+            storage.updateGood(new StandardGood(goodName, newQuantity, price));
+        } catch (StorageException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Override

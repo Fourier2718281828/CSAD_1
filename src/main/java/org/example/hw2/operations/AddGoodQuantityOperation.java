@@ -1,5 +1,6 @@
 package org.example.hw2.operations;
 
+import org.example.exceptions.StorageException;
 import org.example.hw2.goods.StandardGood;
 import org.example.hw2.storages.GroupedGoodStorage;
 
@@ -18,7 +19,11 @@ public class AddGoodQuantityOperation implements Operation {
         var prevGood = storage.getGood(goodName);
         var prevQuantity = prevGood.orElseThrow().getQuantity();
         var prevPrice = prevGood.orElseThrow().getPrice();
-        storage.updateGood(new StandardGood(goodName, prevQuantity + quantity, prevPrice));
+        try {
+            storage.updateGood(new StandardGood(goodName, prevQuantity + quantity, prevPrice));
+        } catch (StorageException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Override

@@ -3,13 +3,13 @@ package org.example.packets.encoding;
 import org.example.exceptions.CodecException;
 import org.example.exceptions.CryptographicException;
 import org.example.packets.data.Message;
-import org.example.packets.encoding.encryption.Cryptographer;
+import org.example.packets.encoding.encryption.CryptographicService;
 import org.example.utilities.TypeTraits;
 import org.example.utilities.bitwise.ByteGetter;
 import org.example.utilities.bitwise.IntegralBytePutter;
 
 public class MessageCodec implements Codec<Message> {
-    public MessageCodec(IntegralBytePutter bytesPutter, Cryptographer messageCryptographer) {
+    public MessageCodec(IntegralBytePutter bytesPutter, CryptographicService messageCryptographer) {
         this.bytesPutter = bytesPutter;
         this.messageCryptographer = messageCryptographer;
     }
@@ -59,5 +59,5 @@ public class MessageCodec implements Codec<Message> {
     }
 
     private final IntegralBytePutter bytesPutter;
-    private final Cryptographer messageCryptographer;
+    private final CryptographicService messageCryptographer;
 }

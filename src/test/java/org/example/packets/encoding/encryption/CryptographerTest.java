@@ -43,7 +43,7 @@ class CryptographerTest {
     void decryptEncryptedMultiple(byte[]... datas)
     {
         try {
-            Cryptographer cryptographer = new CipherCryptographer();
+            CryptographicService cryptographer = new CipherCryptographer();
             for(var data : datas) {
                 decryptEncrypted(cryptographer, data);
             }
@@ -52,7 +52,7 @@ class CryptographerTest {
         }
     }
 
-    void decryptEncrypted(Cryptographer cryptographer, byte[] data) throws CryptographicException {
+    void decryptEncrypted(CryptographicService cryptographer, byte[] data) throws CryptographicException {
         var encrypted = cryptographer.encrypt(data);
         var decrypted = cryptographer.decrypt(encrypted);
         assertArrayEquals(data, decrypted);

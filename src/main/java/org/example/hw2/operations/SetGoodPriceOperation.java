@@ -13,8 +13,8 @@ public class SetGoodPriceOperation implements Operation {
 
     @Override
     public void execute(OperationParams params) {
-        var goodName = params.goodName();
-        var newPrice = params.price();
+        var goodName = params.getGoodName();
+        var newPrice = params.getPrice();
         var prevGood = storage.getGood(goodName);
         var prevQuantity = prevGood.orElseThrow().getQuantity();
         storage.updateGood(new StandardGood(goodName, prevQuantity, newPrice));

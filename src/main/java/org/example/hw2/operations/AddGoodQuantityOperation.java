@@ -13,8 +13,8 @@ public class AddGoodQuantityOperation implements Operation {
 
     @Override
     public void execute(OperationParams params) {
-        var goodName = params.goodName();
-        var quantity = params.quantity();
+        var goodName = params.getGoodName();
+        var quantity = params.getQuantity();
         var prevGood = storage.getGood(goodName);
         var prevQuantity = prevGood.orElseThrow().getQuantity();
         var prevPrice = prevGood.orElseThrow().getPrice();

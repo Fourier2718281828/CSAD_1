@@ -13,7 +13,7 @@ public class AddGoodGroupOperation implements Operation {
 
     @Override
     public void execute(OperationParams params) {
-        var newGroupName = params.groupName();
+        var newGroupName = params.getGroupName();
         var group = new Group(newGroupName);
         storage.createGroup(group);
     }

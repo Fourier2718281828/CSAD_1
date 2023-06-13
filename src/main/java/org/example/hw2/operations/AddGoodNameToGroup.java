@@ -13,8 +13,8 @@ public class AddGoodNameToGroup implements Operation {
 
     @Override
     public void execute(OperationParams params) {
-        var groupName = params.groupName();
-        var goodName = params.goodName();
+        var groupName = params.getGroupName();
+        var goodName = params.getGoodName();
         var good = new StandardGood(goodName);
         storage.addGoodToGroup(good, groupName);
     }

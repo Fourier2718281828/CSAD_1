@@ -2,6 +2,7 @@ package org.example.hw2.basis.impl;
 
 import org.example.exceptions.CodecException;
 import org.example.exceptions.CreationException;
+import org.example.exceptions.StorageException;
 import org.example.factories.interfaces.SingleParamFactory;
 import org.example.hw2.basis.Processor;
 import org.example.hw2.basis.Sender;
@@ -43,6 +44,8 @@ public class StandardProcessor implements Processor {
             sendMessage(messageToSend);
         } catch (CreationException e) {
             sendMessage("Invalid operation id.");
+        } catch (StorageException e) {
+            sendMessage(e.getMessage());
         }
     }
 

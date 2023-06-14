@@ -13,17 +13,14 @@ public class AddGoodQuantityOperation implements Operation {
     }
 
     @Override
-    public void execute(OperationParams params) {
+    public void execute(OperationParams params) throws StorageException {
         var goodName = params.getGoodName();
         var quantity = params.getQuantity();
-        var prevGood = storage.getGood(goodName);
-        var prevQuantity = prevGood.orElseThrow().getQuantity();
-        var prevPrice = prevGood.orElseThrow().getPrice();
-        try {
-            storage.updateGood(new StandardGood(goodName, prevQuantity + quantity, prevPrice));
-        } catch (StorageException e) {
-            throw new RuntimeException(e);
-        }
+        var prevGood = storage.getGood(goodName)
+                .orElseThrow(() -> new StorageException("Good " + goodName + " does not exist."));
+        var prevQuantity = prevGood.getQuantity();
+        var prevPrice = prevGood.getPrice();
+        storage.updateGood(new StandardGood(goodName, prevQuantity + quantity, prevPrice));
     }
 
     @Override

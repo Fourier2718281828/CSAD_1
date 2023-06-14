@@ -9,16 +9,16 @@ import org.example.hw2.operations.Operations;
 import org.example.packets.data.Message;
 import org.example.packets.data.Packet;
 
-public class StandardReceiver implements Receiver {
-    public StandardReceiver(Decryptor decryptor) {
+public class FakeReceiver implements Receiver {
+    public FakeReceiver(FakeReceiverMessageChooser messageChooser, Decryptor decryptor) {
         this.decryptor = decryptor;
+        this.messageChooser = messageChooser;
     }
 
     @Override
     public void receiveMessage() {
         try {
-            var message = new Message(Operations.GET_GOOD_QUANTITY.ordinal(), 1, "milk _ _ _");
-            var packet = new Packet((byte)1, 2, message);
+            var packet = messageChooser.getCurrentPacket();
             var encoded = new PacketCodecFactory().create().encrypt(packet);
             decryptor.decrypt(encoded);
         } catch (CodecException | CreationException e) {
@@ -32,4 +32,5 @@ public class StandardReceiver implements Receiver {
     }
 
     private final Decryptor decryptor;
+    private final FakeReceiverMessageChooser messageChooser;
 }

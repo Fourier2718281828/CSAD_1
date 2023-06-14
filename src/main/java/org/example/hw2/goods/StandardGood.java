@@ -1,8 +1,8 @@
 package org.example.hw2.goods;
 
 public class StandardGood implements Good {
-    public StandardGood(String name) {
-        this(name, 0, 0.0);
+    public StandardGood(String name, double price) {
+        this(name, 0, price);
     }
 
     public StandardGood(String name, int quantity, double price) {

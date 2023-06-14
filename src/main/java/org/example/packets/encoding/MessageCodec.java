@@ -2,6 +2,7 @@ package org.example.packets.encoding;
 
 import org.example.exceptions.CodecException;
 import org.example.exceptions.CryptographicException;
+import org.example.hw2.operations.Operations;
 import org.example.packets.data.Message;
 import org.example.packets.encoding.encryption.CryptographicService;
 import org.example.utilities.TypeTraits;
@@ -21,13 +22,13 @@ public class MessageCodec implements Codec<Message> {
         final var message = encryptable.message();
 
 
-        final var cTypeSize = TypeTraits.sizeof(type);
+        final var cTypeSize = TypeTraits.sizeof(type.ordinal());
         final var bUserIdSize = TypeTraits.sizeof(userId);
         final var messageSize = message.length();
         final var resSize = cTypeSize + bUserIdSize + messageSize;
 
         var res = new byte[resSize];
-        bytesPutter.putToBytes(0, res, type);
+        bytesPutter.putToBytes(0, res, type.ordinal());
         bytesPutter.putToBytes(cTypeSize, res, userId);
         bytesPutter.putToBytes(cTypeSize + bUserIdSize, res, message.getBytes());
 
@@ -49,7 +50,7 @@ public class MessageCodec implements Codec<Message> {
             final var offset = TypeTraits.sizeof(type) + TypeTraits.sizeof(userId);
             final var bMessage = ByteGetter.getBytes(offset, bytes, bytes.length - offset);
             final var message = new String(bMessage);
-            return new Message(type, userId, message);
+            return new Message(Operations.values()[type], userId, message);
         } catch (CryptographicException e) {
             throw new CodecException("Message decryption failed");
         } catch (RuntimeException e) {

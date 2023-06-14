@@ -1,7 +1,7 @@
 package org.example.factories.codec;
 
 import org.example.exceptions.CreationException;
-import org.example.factories.Factory;
+import org.example.factories.interfaces.Factory;
 import org.example.packets.data.Message;
 import org.example.packets.encoding.Codec;
 import org.example.packets.encoding.MessageCodec;

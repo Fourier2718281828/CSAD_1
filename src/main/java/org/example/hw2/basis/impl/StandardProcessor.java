@@ -2,7 +2,7 @@ package org.example.hw2.basis.impl;
 
 import org.example.exceptions.CodecException;
 import org.example.exceptions.CreationException;
-import org.example.factories.SingleParamFactory;
+import org.example.factories.interfaces.SingleParamFactory;
 import org.example.hw2.basis.Processor;
 import org.example.hw2.basis.Sender;
 import org.example.hw2.operations.Operation;
@@ -32,7 +32,7 @@ public class StandardProcessor implements Processor {
             return;
         }
         try {
-            var operationId = Operations.values()[packet.message().type() - 1];
+            var operationId = packet.message().type();
             var operation = operationFactory.create(operationId);
             var message = packet.message().message();
             operation.execute(new OperationParams(message));
@@ -53,7 +53,7 @@ public class StandardProcessor implements Processor {
 
     private void sendMessage(String message) {
         try {
-            var packetToSend = new Packet((byte) 1, 1, new Message(1, 1, message));
+            var packetToSend = new Packet((byte) 1, 1, new Message(Operations.GET_GOOD_QUANTITY, 1, message));
             var encrypted = encryptor.encrypt(packetToSend);
             sender.sendMessage(encrypted, InetAddress.getLocalHost());
         } catch (CodecException | UnknownHostException e) {

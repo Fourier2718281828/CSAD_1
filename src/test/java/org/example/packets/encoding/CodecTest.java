@@ -6,6 +6,7 @@ import org.example.exceptions.CodecException;
 import org.example.exceptions.CreationException;
 import org.example.factories.codec.MessageCodecFactory;
 import org.example.factories.codec.PacketCodecFactory;
+import org.example.hw2.operations.Operations;
 import org.example.packets.data.Message;
 import org.example.packets.data.Packet;
 import org.example.utilities.Pair;
@@ -20,15 +21,15 @@ class CodecTest {
     @Test
     @DisplayName("Decoding an encoded empty message")
     void decodingEncodedEmptyMessageTest() {
-        Message empty = new Message(0, 0, "");
+        Message empty = new Message(Operations.GET_GOOD_QUANTITY, 0, "");
         decodingEncodedMessage(empty);
     }
 
     @Test
     @DisplayName("Decoding an encoded random message")
     void decodingEncodedRandomMessageTest() {
-        Message random1 = new Message(2, 100, "asdadvasdfasdfwefadf");
-        Message random2 = new Message(0, 1030, "asasdfasdfasdfasdfdadvasdfasdfwefadf");
+        Message random1 = new Message(Operations.ADD_GOOD_GROUP, 100, "asdadvasdfasdfwefadf");
+        Message random2 = new Message(Operations.SET_GOOD_PRICE, 1030, "asasdfasdfasdfasdfdadvasdfasdfwefadf");
         decodingEncodedMessage(random1);
         decodingEncodedMessage(random2);
     }

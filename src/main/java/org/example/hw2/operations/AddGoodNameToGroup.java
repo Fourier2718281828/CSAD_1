@@ -15,7 +15,8 @@ public class AddGoodNameToGroup implements Operation {
     public void execute(OperationParams params) {
         var groupName = params.getGroupName();
         var goodName = params.getGoodName();
-        var good = new StandardGood(goodName);
+        var goodPrice = params.getPrice();
+        var good = new StandardGood(goodName, goodPrice);
         storage.addGoodToGroup(good, groupName);
     }
 

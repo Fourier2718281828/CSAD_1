@@ -2,7 +2,7 @@ package org.example.factories.operations;
 
 import org.example.exceptions.CreationException;
 import org.example.exceptions.HolderException;
-import org.example.factories.SingleParamFactory;
+import org.example.factories.interfaces.SingleParamFactory;
 import org.example.hw2.operations.Operation;
 import org.example.hw2.operations.Operations;
 import org.example.hw2.storages.GroupedGoodStorage;

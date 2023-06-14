@@ -46,10 +46,6 @@ public class PacketCodec implements Codec<Packet> {
             bytePutter.putToBytes(bMagicSize + bSrcSize + bPktIdSize + wLenSize, res, wCrc16First);
             bytePutter.putToBytes(res.length - crcSize, res, wCrc16Second);
 
-            System.out.println("////////////////////////");
-            System.out.println(wCrc16First);
-            System.out.println(wCrc16Second);
-
             assert (TypeTraits.sizeof(wCrc16First) == crcSize);
             assert (TypeTraits.sizeof(wCrc16Second) == crcSize);
 

@@ -14,7 +14,9 @@ public class FakeSender implements Sender {
     @Override
     public void sendMessage(byte[] message, InetAddress address) throws CodecException {
         var messageToSend = codec.decode(message);
-        System.out.println("Sender: " + messageToSend);
+        System.out.println("-------------------------------------------------------------");
+        System.out.println("Sender: " + address);
+        System.out.println("Message: " + messageToSend);
     }
 
     private final Codec<Packet> codec;

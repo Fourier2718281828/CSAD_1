@@ -6,7 +6,6 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import java.security.InvalidKeyException;
-import java.security.NoSuchAlgorithmException;
 
 class CryptographerTest {
     @Test
@@ -47,7 +46,7 @@ class CryptographerTest {
             for(var data : datas) {
                 decryptEncrypted(cryptographer, data);
             }
-        } catch (InvalidKeyException | NoSuchAlgorithmException | CryptographicException e) {
+        } catch (InvalidKeyException | CryptographicException e) {
             fail(e.getMessage());
         }
     }

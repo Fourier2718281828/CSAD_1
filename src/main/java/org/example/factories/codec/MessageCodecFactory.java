@@ -9,7 +9,6 @@ import org.example.packets.encoding.encryption.CipherCryptographer;
 import org.example.utilities.bitwise.BigEndianBytePutter;
 
 import java.security.InvalidKeyException;
-import java.security.NoSuchAlgorithmException;
 
 public class MessageCodecFactory implements Factory<Codec<Message>> {
     @Override
@@ -18,7 +17,7 @@ public class MessageCodecFactory implements Factory<Codec<Message>> {
             var bytePutter = new BigEndianBytePutter();
             var messageCryptographer = new CipherCryptographer();
             return new MessageCodec(bytePutter, messageCryptographer);
-        } catch (InvalidKeyException | NoSuchAlgorithmException e) {
+        } catch (InvalidKeyException e) {
             throw new CreationException("Failed to construct messageCryptographer while creating MessageCodec.");
         }
     }

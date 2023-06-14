@@ -13,19 +13,16 @@ public class SubtractGoodQuantityOperation implements Operation{
     }
 
     @Override
-    public void execute(OperationParams params) {
+    public void execute(OperationParams params) throws StorageException {
         var goodName = params.getGoodName();
         var prevGood = storage.getGood(goodName);
         var quantity = prevGood.orElseThrow().getQuantity();
         var price = prevGood.orElseThrow().getPrice();
         var newQuantity = quantity - params.getQuantity();
         if(newQuantity < 0)
-            throw new RuntimeException("Inappropriate quantity.");
-        try {
-            storage.updateGood(new StandardGood(goodName, newQuantity, price));
-        } catch (StorageException e) {
-            throw new RuntimeException(e);
-        }
+            throw new StorageException("Inappropriate quantity " + newQuantity);
+        storage.updateGood(new StandardGood(goodName, newQuantity, price));
+
     }
 
     @Override

@@ -64,9 +64,9 @@ public class Storage implements GroupedGoodStorage {
     }
 
     @Override
-    public void createGroup(GoodsGroup newGroup) {
+    public void createGroup(GoodsGroup newGroup) throws StorageException {
         if(!validateGroupNewName(newGroup.getName()))
-            throw new RuntimeException("Invalid group name: the group with name " +
+            throw new StorageException("Invalid group name: the group with name " +
                     newGroup.getName() + " already exists");
         groups.add(newGroup);
     }

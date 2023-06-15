@@ -8,6 +8,6 @@ import java.util.Optional;
 public interface GroupStorage {
     void createGroup(GoodsGroup newGroup) throws StorageException;
     Optional<GoodsGroup> getGroup(String name);
-    void updateGroup(GoodsGroup group);
-    void deleteGroup(String name);
+    void updateGroup(GoodsGroup group) throws StorageException;
+    void deleteGroup(String name) throws StorageException;
 }

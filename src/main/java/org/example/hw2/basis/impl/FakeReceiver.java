@@ -5,9 +5,6 @@ import org.example.exceptions.CreationException;
 import org.example.factories.codec.PacketCodecFactory;
 import org.example.hw2.basis.Decryptor;
 import org.example.hw2.basis.Receiver;
-import org.example.hw2.operations.Operations;
-import org.example.packets.data.Message;
-import org.example.packets.data.Packet;
 
 public class FakeReceiver implements Receiver {
     public FakeReceiver(FakeReceiverMessageChooser messageChooser, Decryptor decryptor) {

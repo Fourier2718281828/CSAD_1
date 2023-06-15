@@ -1,5 +1,6 @@
 package org.example.hw2.operations;
 
+import org.example.exceptions.StorageException;
 import org.example.hw2.goods.StandardGood;
 import org.example.hw2.storages.GroupedGoodStorage;
 
@@ -12,7 +13,7 @@ public class AddGoodNameToGroup implements Operation {
     }
 
     @Override
-    public void execute(OperationParams params) {
+    public void execute(OperationParams params) throws StorageException {
         var groupName = params.getGroupName();
         var goodName = params.getGoodName();
         var goodPrice = params.getPrice();

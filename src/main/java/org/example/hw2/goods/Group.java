@@ -2,13 +2,14 @@ package org.example.hw2.goods;
 
 import org.example.exceptions.StorageException;
 
-import java.util.List;
-import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.Collections;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class Group implements GoodsGroup {
     public Group(String name) {
         this.name = name;
-        this.goods = new CopyOnWriteArrayList<>();
+        this.goods = new ConcurrentHashMap<>();
     }
 
     @Override
@@ -18,33 +19,31 @@ public class Group implements GoodsGroup {
 
     @Override
     public Iterable<Good> getGoods() {
-        return goods;
+        return Collections.unmodifiableCollection(goods.values());
     }
 
     @Override
     public void addGood(Good good) {
-        goods.add(good);
+        goods.put(good.getName(), good);
     }
 
     @Override
     public void removeGood(String goodName) throws StorageException {
-        var foundGood = goods.stream()
-                .filter(good -> good.getName().equals(goodName))
-                .findFirst()
-                .orElseThrow(() -> new StorageException("Non-existent good."));
-        goods.remove(foundGood);
+        Good removed = goods.remove(goodName);
+        if (removed == null) {
+            throw new StorageException("Trying to remove a non-existent good.");
+        }
     }
 
     @Override
     public void updateGood(Good updatedGood) throws StorageException {
-        var foundGood = goods.stream()
-                .filter(good -> good.getName().equals(updatedGood.getName()))
-                .findFirst()
-                .orElseThrow(() -> new StorageException("Non-existent good."));
-        var index = goods.indexOf(foundGood);
-        goods.set(index, updatedGood);
+        Good gotGood = goods.get(updatedGood.getName());
+        if (gotGood == null) {
+            throw new StorageException("Non-existent good.");
+        }
+        goods.put(updatedGood.getName(), updatedGood);
     }
 
-    private String name;
-    private final List<Good> goods;
+    private final String name;
+    private final Map<String, Good> goods;
 }

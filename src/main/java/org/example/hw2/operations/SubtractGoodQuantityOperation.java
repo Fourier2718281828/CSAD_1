@@ -21,6 +21,7 @@ public class SubtractGoodQuantityOperation implements Operation{
         var newQuantity = quantity - params.getQuantity();
         if(newQuantity < 0)
             throw new StorageException("Inappropriate quantity " + newQuantity);
+        System.out.println("Quantity updated: " + newQuantity);
         storage.updateGood(new StandardGood(goodName, newQuantity, price));
 
     }

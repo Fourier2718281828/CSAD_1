@@ -21,6 +21,7 @@ public class AddGoodQuantityOperation implements Operation {
         var prevQuantity = prevGood.getQuantity();
         var prevPrice = prevGood.getPrice();
         storage.updateGood(new StandardGood(goodName, prevQuantity + quantity, prevPrice));
+        System.out.println("Quantity updated: " + storage.getGood(goodName).get().getQuantity());
     }
 
     @Override

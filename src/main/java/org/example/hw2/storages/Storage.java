@@ -3,33 +3,54 @@ package org.example.hw2.storages;
 import org.example.exceptions.StorageException;
 import org.example.hw2.goods.Good;
 import org.example.hw2.goods.GoodsGroup;
-import java.util.List;
+
+import java.util.Map;
 import java.util.Optional;
-import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.function.Predicate;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class Storage implements GroupedGoodStorage {
+
     public Storage() {
-        groups = new CopyOnWriteArrayList<>();
+        this.groups = new ConcurrentHashMap<>();
     }
 
     @Override
-    public void addGoodToGroup(Good good, String groupName) {
-        var foundGroup = getGroup(groupName);
-        if(foundGroup.isPresent()) {
-            var group = foundGroup.get();
-            group.addGood(good);
-        } else {
-            throw new RuntimeException("Cannot add good with name " +
-                    good.getName() + " to a non-existent group with name " + groupName);
+    public void createGroup(GoodsGroup group) {
+        groups.put(group.getName(), group);
+    }
+
+    @Override
+    public void deleteGroup(String groupName) throws StorageException {
+        GoodsGroup removedGroup = groups.remove(groupName);
+        if (removedGroup == null) {
+            throw new StorageException("Group " + groupName + " does not exist.");
         }
     }
 
     @Override
+    public Optional<GoodsGroup> getGroup(String groupName) {
+        return Optional.ofNullable(groups.get(groupName));
+    }
+
+    @Override
+    public void updateGroup(GoodsGroup group) throws StorageException {
+        var gotGroup = groups.get(group.getName());
+        if(gotGroup == null)
+            throw new StorageException("Attampting to update a non-existent group: " + group.getName());
+        groups.put(group.getName(), group);
+    }
+
+    @Override
+    public void addGoodToGroup(Good good, String groupName) throws StorageException {
+        getGroup(groupName)
+                .orElseThrow(() -> new StorageException("Trying to modify a non-existent group: " + groupName))
+                .addGood(good);
+    }
+
+    @Override
     public Optional<Good> getGood(String goodName) {
-        for(var group : groups) {
-            var goods = group.getGoods();
-            for(var good : goods) {
+        for(var group : groups.values()) {
+            for(var good : group.getGoods()) {
                 if(good.getName().equals(goodName))
                     return Optional.of(good);
             }
@@ -38,78 +59,30 @@ public class Storage implements GroupedGoodStorage {
     }
 
     @Override
-    public void updateGood(Good updatedGood) throws StorageException {
-        for(var group : groups) {
-            var goods = group.getGoods();
-            for(var good : goods) {
-                if(good.getName().equals(updatedGood.getName())) {
-                    group.updateGood(updatedGood);
+    public void updateGood(Good newGood) throws StorageException {
+        for(var group : groups.values()) {
+            for(var good : group.getGoods()) {
+                if(good.getName().equals(newGood.getName())) {
+                    group.updateGood(newGood);
                     return;
                 }
             }
         }
-        throw new StorageException("The good " + updatedGood.getName() + " does not exist.");
+        throw new StorageException("Trying to update a non-existent good: " + newGood.getName());
     }
 
     @Override
-    public void deleteGood(String goodName) throws StorageException {
-        for(var group : groups) {
-            var goods = group.getGoods();
-            for(var good : goods) {
-                if(good.getName().equals(goodName)) {
-                    group.removeGood(goodName);
+    public void deleteGood(String name) throws StorageException {
+        for(var group : groups.values()) {
+            for(var good : group.getGoods()) {
+                if(good.getName().equals(name)) {
+                    group.removeGood(name);
+                    return;
                 }
             }
         }
+        throw new StorageException("Trying to delete a non-existent good: " + name);
     }
 
-    @Override
-    public void createGroup(GoodsGroup newGroup) throws StorageException {
-        if(!validateGroupNewName(newGroup.getName()))
-            throw new StorageException("Invalid group name: the group with name " +
-                    newGroup.getName() + " already exists");
-        groups.add(newGroup);
-    }
-
-    @Override
-    public Optional<GoodsGroup> getGroup(String name) {
-        return findGroup(group -> group.getName().equals(name));
-    }
-
-    public Optional<GoodsGroup> findGroup(Predicate<GoodsGroup> predicate) {
-        return groups.stream()
-                .filter(predicate)
-                .findFirst();
-    }
-
-    @Override
-    public void updateGroup(GoodsGroup group) {
-        var index = indexOfGroup(group.getName());
-        groups.set(index, group);
-    }
-
-    private int indexOfGroup(String name) {
-        int index = 0;
-        for(var g : groups) {
-            if(g.getName().equals(name)) {
-                return index;
-            }
-        }
-        return -1;
-    }
-
-    @Override
-    public void deleteGroup(String name) {
-        var found = getGroup(name);
-        if(found.isPresent())
-            groups.remove(found.get());
-        else
-            throw new RuntimeException("The Group with name " + name + " not found.");
-    }
-
-    boolean validateGroupNewName(String newName) {
-        return getGroup(newName).isEmpty();
-    }
-
-    private final List<GoodsGroup> groups;
+    private final Map<String, GoodsGroup> groups;
 }

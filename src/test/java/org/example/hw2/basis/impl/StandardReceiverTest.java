@@ -15,8 +15,11 @@ import org.example.hw2.storages.Storage;
 import org.example.utilities.Pair;
 import org.junit.jupiter.api.*;
 
+import java.util.Arrays;
+import java.util.Random;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -137,10 +140,82 @@ class StandardReceiverTest {
         assertEquals(resPrice, storage.getGood(goodName).get().getPrice());
     }
 
+    private int[] getRandomInts(int n, int max) {
+        Random random = new Random();
+        int[] res = new int[n];
+        for(int i = 0; i < res.length; ++i) {
+            res[i] = random.nextInt(max);
+        }
+        return res;
+    }
+
+    private int[] negate(int[] arr) {
+        var res = new int[arr.length];
+        for(int i = 0; i < arr.length; ++i) {
+            res[i] = -arr[i];
+        }
+        return res;
+    }
+
+    @Test
+    @DisplayName("Multy-threaded increasing and decreasing good quantity")
+    public void multyThreadedAddGoodQuantityTest()  {
+        final var threadPool = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
+        final var goodName = "Milk";
+        final var quantityIncreases = new int[] {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16};
+        final var initialQuantity = storage.getGood(goodName).get().getQuantity();
+        final var resQuantity = Arrays.stream(quantityIncreases).reduce(initialQuantity, Integer::sum);
+
+        final var operations = new Pair[quantityIncreases.length];
+        for(int i = 0; i < quantityIncreases.length; ++i) {
+            operations[i] = new Pair(
+                    Operations.ADD_GOOD_QUANTITY,
+                    new OperationParams(null, goodName, quantityIncreases[i], 0.0)
+            );
+        }
+
+        var messageChooser = new FakeReceiverMessageChooser(new PacketFactory());
+        var receiverFactory = new FakeReceiverFactory();
+        assertTrue(storage.getGood(goodName).isPresent());
+        try(var receiver = receiverFactory.create(storage, messageChooser)) {
+            multyThreadedMultipleMessage(threadPool, receiver, messageChooser, operations);
+            //multipleMessage(receiver, messageChooser, operations);
+//            multyThreadedMultipleMessage(threadPool, receiver, messageChooser, new Pair[] {
+//                    new Pair(Operations.ADD_GOOD_QUANTITY, new OperationParams(null, goodName, 229, 0.0))
+//            });
+//            multipleMessage(receiver, messageChooser, new Pair[] {
+//                    new Pair(Operations.ADD_GOOD_QUANTITY, new OperationParams(null, goodName, 229, 0.0))
+//            });
+            threadPool.shutdown();//?????????
+            while(!threadPool.awaitTermination(100L, TimeUnit.MILLISECONDS)) {
+                System.out.println("Waiting");
+            }
+        } catch (Exception e) {
+            fail(e.getMessage());
+        }
+
+        assertTrue(storage.getGood(goodName).isPresent());
+        assertEquals(resQuantity, storage.getGood(goodName).get().getQuantity());
+        System.out.println(storage.getGood(goodName).get().getQuantity());
+    }
+
     private void multipleMessage(Receiver receiver, FakeReceiverMessageChooser messageChooser, Pair<Operations, OperationParams>[] messages) throws CreationException {
         for(var pair : messages) {
             messageChooser.setOperation(pair.first(), pair.second());
             receiver.receiveMessage();
+        }
+    }
+
+    private void multyThreadedMultipleMessage(ExecutorService threadPool, Receiver receiver, FakeReceiverMessageChooser messageChooser, Pair<Operations, OperationParams>[] messages) {
+        for(var pair : messages) {
+            threadPool.submit(() -> {
+                try {
+                    messageChooser.setOperation(pair.first(), pair.second());
+                    receiver.receiveMessage();
+                } catch (Exception e) {
+                    System.out.println("Failure: " + e.getMessage());
+                }
+            });
         }
     }
 
@@ -164,7 +239,7 @@ class StandardReceiverTest {
 
     @BeforeEach
     public void setUp() throws StorageException {
-        this.threadPool = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
+//        this.threadPool = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
         storage = new Storage();
         storage.createGroup(new Group("Group1"));
         storage.createGroup(new Group("Group2"));
@@ -174,11 +249,11 @@ class StandardReceiverTest {
         storage.addGoodToGroup(new StandardGood("Beetroot", 40.0), "Group2");
     }
 
-    @AfterEach
-    public void tearDown() {
-        this.threadPool.shutdown();
-    }
-
-    private ExecutorService threadPool;
+//    @AfterEach
+//    public void tearDown() {
+//        this.threadPool.shutdown();
+//    }
+//
+//    private ExecutorService threadPool;
     private Storage storage;
 }

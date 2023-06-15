@@ -1,5 +1,8 @@
 package org.example.hw2.goods;
 
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
+
 public class StandardGood implements Good {
     public StandardGood(String name, double price) {
         this(name, 0, price);
@@ -7,8 +10,8 @@ public class StandardGood implements Good {
 
     public StandardGood(String name, int quantity, double price) {
         this.name = name;
-        this.quantity = quantity;
-        this.price = price;
+        this.quantity = new AtomicInteger(quantity);
+        this.price = new AtomicReference<>(price);
     }
 
     @Override
@@ -18,26 +21,26 @@ public class StandardGood implements Good {
 
     @Override
     public int getQuantity() {
-        return quantity;
+        return quantity.get();
     }
 
     @Override
     public void setQuantity(int quantity) {
         if(!validateQuantity(quantity))
             throw new RuntimeException("Trying to set an invalid goods quantity.");
-        this.quantity = quantity;
+        this.quantity.set(quantity);
     }
 
     @Override
     public double getPrice() {
-        return price;
+        return price.get();
     }
 
     @Override
     public void setPrice(double price) {
         if(!validatePrice(price))
             throw new RuntimeException("Trying to set an invalid good's price.");
-        this.price = price;
+        this.price.set(price);
     }
 
     private boolean validateQuantity(int quantity) {
@@ -49,6 +52,6 @@ public class StandardGood implements Good {
     }
 
     private final String name;
-    private int quantity;
-    private double price;
+    private final AtomicInteger quantity;
+    private final AtomicReference<Double> price;
 }

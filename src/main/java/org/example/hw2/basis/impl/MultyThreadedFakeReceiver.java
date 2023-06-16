@@ -1,6 +1,8 @@
 package org.example.hw2.basis.impl;
 
 import org.example.hw2.basis.Receiver;
+import org.example.hw2.operations.OperationParams;
+import org.example.hw2.operations.Operations;
 import org.example.utilities.ThreadUtils;
 
 import java.util.concurrent.ExecutorService;
@@ -16,6 +18,15 @@ public class MultyThreadedFakeReceiver implements Receiver {
     public void receiveMessage() {
         try {
             threadPool.submit(receiver::receiveMessage);
+        } catch (Exception e) {
+            System.err.println(e.getMessage());
+        }
+    }
+
+    @Override
+    public void receiveMessageTest(Operations type, OperationParams params) {
+        try {
+            threadPool.submit(() -> receiver.receiveMessageTest(type, params));
         } catch (Exception e) {
             System.err.println(e.getMessage());
         }

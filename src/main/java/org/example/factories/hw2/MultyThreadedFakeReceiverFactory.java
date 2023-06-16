@@ -6,10 +6,10 @@ import org.example.factories.interfaces.DoubleParamFactory;
 import org.example.factories.operations.OperationFactory;
 import org.example.hw2.basis.Receiver;
 import org.example.hw2.basis.impl.*;
-import org.example.hw2.storages.Storage;
+import org.example.hw2.storages.GroupedGoodStorage;
 
-public class MultyThreadedFakeReceiverFactory implements DoubleParamFactory<Receiver, Storage, FakeReceiverMessageChooser> {
-    public Receiver create(Storage storage, FakeReceiverMessageChooser messageChooser) throws CreationException {
+public class MultyThreadedFakeReceiverFactory implements DoubleParamFactory<Receiver, GroupedGoodStorage, FakeReceiverMessageChooser> {
+    public Receiver create(GroupedGoodStorage storage, FakeReceiverMessageChooser messageChooser) throws CreationException {
         var codecFactory = new PacketCodecFactory();
         var codec = codecFactory.create();
         var fakeSender = new FakeSender(codec);

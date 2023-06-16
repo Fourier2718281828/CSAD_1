@@ -3,6 +3,7 @@ package org.example.hw2.basis.impl;
 import org.example.exceptions.CreationException;
 import org.example.exceptions.HolderException;
 import org.example.exceptions.StorageException;
+import org.example.factories.hw2.MultyThreadedFakeReceiverFactory;
 import org.example.factories.hw2.PacketFactory;
 import org.example.factories.hw2.FakeReceiverFactory;
 import org.example.factories.operations.OperationFactoryInitializer;
@@ -11,6 +12,7 @@ import org.example.hw2.goods.Group;
 import org.example.hw2.goods.StandardGood;
 import org.example.hw2.operations.OperationParams;
 import org.example.hw2.operations.Operations;
+import org.example.hw2.storages.GroupedGoodStorage;
 import org.example.hw2.storages.Storage;
 import org.example.utilities.Pair;
 import org.junit.jupiter.api.*;
@@ -25,6 +27,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class StandardReceiverTest {
     @Test
+//    @Disabled
     @DisplayName("Adding group")
     public void addingGroupTest() {
         final var groupName = "Example";
@@ -42,6 +45,7 @@ class StandardReceiverTest {
     }
 
     @Test
+//    @Disabled
     @DisplayName("Adding good")
     public void addingGoodTest() {
         final var groupName = "Group1";
@@ -63,6 +67,7 @@ class StandardReceiverTest {
     }
 
     @Test
+//    @Disabled
     @DisplayName("Increasing and decreasing good quantity")
     public void addGoodQuantity() {
         final var goodName = "Milk";
@@ -100,6 +105,7 @@ class StandardReceiverTest {
     }
 
     @Test
+//    @Disabled
     @DisplayName("Increasing and decreasing good quantity")
     public void inappropriateDecreasingQuantity() {
         final var goodName = "Milk";
@@ -121,6 +127,7 @@ class StandardReceiverTest {
     }
 
     @Test
+//    @Disabled
     @DisplayName("Modifying a good price")
     public void modifyingGoodPrice() {
         final var goodName = "Milk";
@@ -162,7 +169,7 @@ class StandardReceiverTest {
     public void multyThreadedAddGoodQuantityTest()  {
         final var threadPool = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
         final var goodName = "Milk";
-        final var quantityIncreases = new int[] {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16};
+        final var quantityIncreases = getRandomInts(10000, 100);
         final var initialQuantity = storage.getGood(goodName).get().getQuantity();
         final var resQuantity = Arrays.stream(quantityIncreases).reduce(initialQuantity, Integer::sum);
 
@@ -172,20 +179,15 @@ class StandardReceiverTest {
                     Operations.ADD_GOOD_QUANTITY,
                     new OperationParams(null, goodName, quantityIncreases[i], 0.0)
             );
+            System.out.println(operations[i].second());
         }
 
         var messageChooser = new FakeReceiverMessageChooser(new PacketFactory());
-        var receiverFactory = new FakeReceiverFactory();
+        var receiverFactory = new MultyThreadedFakeReceiverFactory();
         assertTrue(storage.getGood(goodName).isPresent());
         try(var receiver = receiverFactory.create(storage, messageChooser)) {
             multyThreadedMultipleMessage(threadPool, receiver, messageChooser, operations);
             //multipleMessage(receiver, messageChooser, operations);
-//            multyThreadedMultipleMessage(threadPool, receiver, messageChooser, new Pair[] {
-//                    new Pair(Operations.ADD_GOOD_QUANTITY, new OperationParams(null, goodName, 229, 0.0))
-//            });
-//            multipleMessage(receiver, messageChooser, new Pair[] {
-//                    new Pair(Operations.ADD_GOOD_QUANTITY, new OperationParams(null, goodName, 229, 0.0))
-//            });
             threadPool.shutdown();//?????????
             while(!threadPool.awaitTermination(100L, TimeUnit.MILLISECONDS)) {
                 System.out.println("Waiting");
@@ -211,7 +213,7 @@ class StandardReceiverTest {
             threadPool.submit(() -> {
                 try {
                     messageChooser.setOperation(pair.first(), pair.second());
-                    receiver.receiveMessage();
+                    receiver.receiveMessageTest(pair.first(), pair.second());
                 } catch (Exception e) {
                     System.out.println("Failure: " + e.getMessage());
                 }
@@ -255,5 +257,5 @@ class StandardReceiverTest {
 //    }
 //
 //    private ExecutorService threadPool;
-    private Storage storage;
+    private GroupedGoodStorage storage;
 }

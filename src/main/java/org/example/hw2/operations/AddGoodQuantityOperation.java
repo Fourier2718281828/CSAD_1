@@ -19,13 +19,12 @@ public class AddGoodQuantityOperation implements Operation {
             var quantity = params.getQuantity();
             var prevGood = storage.getGood(goodName)
                     .orElseThrow(() -> new StorageException("Good " + goodName + " does not exist."));
-            System.out.println("-----------------------------------------");
-            System.out.println("Got quantity: " + prevGood.getQuantity());
-            System.out.println("To add: " + params.getQuantity());
+//            System.out.println("-----------------------------------------");
+//            System.out.println("Got quantity: " + prevGood.getQuantity());
+//            System.out.println("To add: " + params.getQuantity());
             var prevQuantity = prevGood.getQuantity();
             var prevPrice = prevGood.getPrice();
             storage.updateGood(new StandardGood(goodName, prevQuantity + quantity, prevPrice));
-            System.out.println("Quantity updated: " + storage.getGood(goodName).get().getQuantity());
         }
     }
 

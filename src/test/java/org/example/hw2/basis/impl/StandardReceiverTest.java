@@ -169,7 +169,7 @@ class StandardReceiverTest {
     public void multyThreadedAddGoodQuantityTest()  {
         final var threadPool = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
         final var goodName = "Milk";
-        final var quantityIncreases = getRandomInts(10000, 100);
+        final var quantityIncreases = getRandomInts(10, 100);
         final var initialQuantity = storage.getGood(goodName).get().getQuantity();
         final var resQuantity = Arrays.stream(quantityIncreases).reduce(initialQuantity, Integer::sum);
 

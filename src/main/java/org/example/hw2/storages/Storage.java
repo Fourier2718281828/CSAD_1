@@ -43,7 +43,15 @@ public class Storage implements GroupedGoodStorage {
 
     @Override
     public void deleteGood(String name) throws StorageException {
-
+        for(var group : groups.values()) {
+            for(var good : group.getGoods()) {
+                if(good.getName().equals(name)) {
+                    group.removeGood(name);
+                    return;
+                }
+            }
+        }
+        throw new StorageException("Trying to delete a non-existent good: " + name);
     }
 
     @Override
@@ -61,12 +69,18 @@ public class Storage implements GroupedGoodStorage {
 
     @Override
     public void updateGroup(GoodsGroup group) throws StorageException {
-
+        var gotGroup = groups.get(group.getName());
+        if(gotGroup == null)
+            throw new StorageException("Attempting to update a non-existent group: " + group.getName());
+        groups.put(group.getName(), group);
     }
 
     @Override
-    public void deleteGroup(String name) throws StorageException {
-
+    public void deleteGroup(String groupName) throws StorageException {
+        GoodsGroup removedGroup = groups.remove(groupName);
+        if (removedGroup == null) {
+            throw new StorageException("Group " + groupName + " does not exist.");
+        }
     }
 
     private final Map<String, GoodsGroup> groups;

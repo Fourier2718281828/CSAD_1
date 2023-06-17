@@ -12,11 +12,17 @@ public class FakeSender implements Sender {
         this.codec = codec;
     }
     @Override
-    public void sendMessage(byte[] message, InetAddress address) throws CodecException {
-        var messageToSend = codec.decode(message);
-        System.out.println("----------------------------------------------------------------------------------------------------" +
-                "\nSender: " + address +
-                "\nMessage: " + messageToSend);
+    public void sendMessage(byte[] message, InetAddress address)  {
+        Packet messageToSend;
+        try {
+            messageToSend = codec.decode(message);
+            System.out.println("----------------------------------------------------------------------------------------------------" +
+                    "\nSender: " + address +
+                    "\nMessage: " + messageToSend);
+        } catch (CodecException e) {
+            System.out.println("----------------------------------------------------------------------------------------------------" +
+            e.getMessage());
+        }
     }
 
     private final Codec<Packet> codec;

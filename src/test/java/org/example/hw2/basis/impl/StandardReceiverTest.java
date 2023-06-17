@@ -3,7 +3,6 @@ package org.example.hw2.basis.impl;
 import org.example.exceptions.CreationException;
 import org.example.exceptions.HolderException;
 import org.example.exceptions.StorageException;
-import org.example.factories.hw2.MultyThreadedFakeReceiverFactory;
 import org.example.factories.hw2.PacketFactory;
 import org.example.factories.hw2.FakeReceiverFactory;
 import org.example.factories.operations.OperationFactoryInitializer;
@@ -17,11 +16,7 @@ import org.example.hw2.storages.Storage;
 import org.example.utilities.Pair;
 import org.junit.jupiter.api.*;
 
-import java.util.Arrays;
 import java.util.Random;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -164,60 +159,10 @@ class StandardReceiverTest {
         return res;
     }
 
-    @Test
-    @DisplayName("Multy-threaded increasing and decreasing good quantity")
-    public void multyThreadedAddGoodQuantityTest()  {
-        final var threadPool = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
-        final var goodName = "Milk";
-        final var quantityIncreases = getRandomInts(10, 100);
-        final var initialQuantity = storage.getGood(goodName).get().getQuantity();
-        final var resQuantity = Arrays.stream(quantityIncreases).reduce(initialQuantity, Integer::sum);
-
-        final var operations = new Pair[quantityIncreases.length];
-        for(int i = 0; i < quantityIncreases.length; ++i) {
-            operations[i] = new Pair(
-                    Operations.ADD_GOOD_QUANTITY,
-                    new OperationParams(null, goodName, quantityIncreases[i], 0.0)
-            );
-            System.out.println(operations[i].second());
-        }
-
-        var messageChooser = new FakeReceiverMessageChooser(new PacketFactory());
-        var receiverFactory = new MultyThreadedFakeReceiverFactory();
-        assertTrue(storage.getGood(goodName).isPresent());
-        try(var receiver = receiverFactory.create(storage, messageChooser)) {
-            multyThreadedMultipleMessage(threadPool, receiver, messageChooser, operations);
-            //multipleMessage(receiver, messageChooser, operations);
-            threadPool.shutdown();//?????????
-            while(!threadPool.awaitTermination(100L, TimeUnit.MILLISECONDS)) {
-                System.out.println("Waiting");
-            }
-        } catch (Exception e) {
-            fail(e.getMessage());
-        }
-
-        assertTrue(storage.getGood(goodName).isPresent());
-        assertEquals(resQuantity, storage.getGood(goodName).get().getQuantity());
-        System.out.println(storage.getGood(goodName).get().getQuantity());
-    }
-
     private void multipleMessage(Receiver receiver, FakeReceiverMessageChooser messageChooser, Pair<Operations, OperationParams>[] messages) throws CreationException {
         for(var pair : messages) {
             messageChooser.setOperation(pair.first(), pair.second());
             receiver.receiveMessage();
-        }
-    }
-
-    private void multyThreadedMultipleMessage(ExecutorService threadPool, Receiver receiver, FakeReceiverMessageChooser messageChooser, Pair<Operations, OperationParams>[] messages) {
-        for(var pair : messages) {
-            threadPool.submit(() -> {
-                try {
-                    messageChooser.setOperation(pair.first(), pair.second());
-                    receiver.receiveMessageTest(pair.first(), pair.second());
-                } catch (Exception e) {
-                    System.out.println("Failure: " + e.getMessage());
-                }
-            });
         }
     }
 

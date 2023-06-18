@@ -22,18 +22,16 @@ import java.net.UnknownHostException;
 import java.util.Arrays;
 import java.util.concurrent.atomic.AtomicInteger;
 
-public class StoreClientTCP implements TCPClient, AutoCloseable {
+public class StoreClientTCP implements Client {
     public StoreClientTCP(Codec<Packet> codec, DoubleParamFactory<Packet, Byte, Message> packetFactory) {
         this.codec = codec;
         this.packetFactory = packetFactory;
     }
 
-    @Override
-    public void connect(InetAddress serverAddress, int serverPort) throws ClientException {
-        if(isConnected())
-            throw new ClientException("Cannot connect an already connected client.");
+    private void connect(InetAddress serverAddress, int serverPort) throws ClientException {
         try {
             socket = new Socket(serverAddress, serverPort);
+            socket.setSoTimeout(CONNECTION_AWAITING_DELAY);
             istream = socket.getInputStream();
             ostream = socket.getOutputStream();
         } catch (IOException e) {
@@ -42,62 +40,63 @@ public class StoreClientTCP implements TCPClient, AutoCloseable {
         isConnected = true;
     }
 
-    @Override
-    public void disconnect() throws ClientException {
-        if(!isConnected())
-            throw new ClientException("Cannot disconnect a non-connected client.");
+    private void disconnect() {
+        if(!isConnected) return;
         try {
-            socket.close();
             istream.close();
             ostream.close();
+            if(socket != null) {
+                socket.close();
+                socket = null;
+            }
         } catch (IOException e) {
-            throw new ClientException(e.getMessage());
+            e.printStackTrace();
         }
         isConnected = false;
     }
 
-    @Override
-    public boolean isConnected() {
-        return isConnected;
+    private byte[] readAllMessage(InputStream inputStream) throws IOException {
+        var res = new byte[ServerUtils.MAX_PACKET_SIZE];
+        var actualSize = inputStream.read(res);
+        return Arrays.copyOf(res, actualSize);
     }
 
     @Override
-    public void sendMessage(Operations operationType, OperationParams params) throws ClientException {
-        if(!isConnected())
-            throw new ClientException("Cannot send when not connected to server.");
+    public Message sendMessage(InetAddress serverAddress, int serverPort,
+                               Operations operationType, OperationParams params) throws ClientException {
         try {
+            connect(serverAddress, serverPort);
             var messageTxt = params.toString();
             var message = new Message(operationType, userId.getAndIncrement(), messageTxt);
             var packet = packetFactory.create((byte) 0x0, message);
             byte[] encrypted = codec.encrypt(packet);
-            System.out.println("Length " + encrypted.length + ": " + Arrays.toString(encrypted));
-            var bytes = new byte[] {
-                    19, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 32, 11, 19, 91, 108, 49, 104, -126, 121, 109, -96, 9,
-                    -18, -64, 35, 31, -18, -94, 122, -117, -73, 78, 24, 119, -49, -122, 96, -8, 103, -127, 110, 69, -99, -30, -81, 87, -84
-            };
-            ostream.write(bytes);
+            ostream.write(encrypted);
             ostream.flush();
-        } catch (CreationException | CodecException | IOException e) {
-            throw new RuntimeException(e);
-        }
-    }
 
-    @Override
-    public Message receiveMessage() throws ClientException {
-        if(!isConnected())
-            throw new ClientException("Cannot receive when not connected to server.");
-        try {
-            var readBytes = istream.readAllBytes();
+            var readBytes = readAllMessage(istream);
             var decoded = codec.decode(readBytes);
             return decoded.message();
-        } catch (IOException | CodecException e) {
+        }  catch (CreationException | CodecException e) {
             throw new RuntimeException(e);
+        } catch (IOException e) {
+            boolean success = false;
+            for (int i = 0; i < ATTEMPTS_TO_RENEW_CONNECTION; i++) {
+                try {
+                    Thread.sleep(RECONNECTION_AWAITING_DELAY);
+                    connect(serverAddress, serverPort);
+                    success = true;
+                    break;
+                } catch (InterruptedException | ClientException ex) {
+                    e.printStackTrace();
+                }
+            }
+            if (!success) {
+                throw new ClientException("Connection lost");
+            }
+        } finally {
+            disconnect();
         }
-    }
-
-    @Override
-    public void close() throws ClientException {
-        if(isConnected) disconnect();
+        return sendMessage(serverAddress, serverPort, operationType, params);
     }
 
     public static void main(String[] args) {
@@ -106,11 +105,13 @@ public class StoreClientTCP implements TCPClient, AutoCloseable {
             var codecFactory = new PacketCodecFactory();
             var codec = codecFactory.create();
             var packetFactory = new PacketFactory();
-            try (var client = new StoreClientTCP(codec, packetFactory)){
-                client.connect(serverAddress, ServerUtils.PORT);
-                client.sendMessage(Operations.GET_GOOD_QUANTITY,
+            try {
+                var client = new StoreClientTCP(codec, packetFactory);
+                var received = client.sendMessage(serverAddress, ServerUtils.PORT, Operations.GET_GOOD_QUANTITY,
                         new OperationParams("", "Milk", 0, 0));
-                var received = client.receiveMessage();
+                System.out.println(received);
+                received = client.sendMessage(serverAddress, ServerUtils.PORT, Operations.GET_GOOD_QUANTITY,
+                        new OperationParams("", "Milk", 0, 0));
                 System.out.println(received);
             } catch (ClientException e) {
                 throw new RuntimeException(e);
@@ -127,4 +128,8 @@ public class StoreClientTCP implements TCPClient, AutoCloseable {
     private final Codec<Packet> codec;
     private final DoubleParamFactory<Packet, Byte, Message> packetFactory;
     private static final AtomicInteger userId = new AtomicInteger(0);
+    private static final long RECONNECTION_AWAITING_DELAY = 2000;
+    private static final int CONNECTION_AWAITING_DELAY = 2000;
+    private static final int ATTEMPTS_TO_RENEW_CONNECTION = 10;
+
 }

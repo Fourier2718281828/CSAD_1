@@ -1,11 +1,16 @@
 package org.example.hw3;
 
 import org.example.exceptions.CreationException;
+import org.example.exceptions.HolderException;
+import org.example.exceptions.StorageException;
 import org.example.factories.interfaces.DoubleParamFactory;
+import org.example.factories.operations.OperationFactoryInitializer;
 import org.example.hw2.basis.Receiver;
+import org.example.hw2.goods.Group;
+import org.example.hw2.goods.StandardGood;
 import org.example.hw2.storages.GroupedGoodStorage;
 import org.example.hw2.storages.Storage;
-import org.example.hw3.receivers.ReceiverFactory;
+import org.example.hw3.receivers.TCPReceiverFactory;
 import org.example.utilities.ServerUtils;
 import org.example.utilities.ThreadUtils;
 
@@ -26,12 +31,24 @@ public class StoreServerTCP implements Server {
 
     @Override
     public void start() {
+        System.out.println("Server is running");
         while (true) {
             Socket clientSocket;
             try {
                 clientSocket = socket.accept();
-                var receiver = receiverFactory.create(clientSocket, storage);
-                receiver.receiveMessage();//threadPool.submit(receiver::receiveMessage);
+                if(ServerUtils.TCP_SERVER_WILL_BREAK_DOWN) {
+                    try {
+                        System.out.println("Server broke down");
+                        Thread.sleep(5000);
+                    } catch (InterruptedException e) {
+                        throw new RuntimeException(e);
+                    }
+                    System.out.println("Server works again");
+                    ServerUtils.TCP_SERVER_WILL_BREAK_DOWN = false;
+                } else {
+                    var receiver = receiverFactory.create(clientSocket, storage);
+                    threadPool.submit(receiver::receiveMessage);
+                }
             } catch (IOException | CreationException e) {
                 throw new RuntimeException(e);
             }
@@ -45,9 +62,12 @@ public class StoreServerTCP implements Server {
                 () -> System.out.println("Waiting for TCP-server's thread pool to shut down"));
     }
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws HolderException, StorageException {
+        OperationFactoryInitializer.holdAllOperations();
         var storage = new Storage();
-        try (var server = new StoreServerTCP(ServerUtils.PORT, new ReceiverFactory(), storage)) {
+        storage.createGroup(new Group("Products"));
+        storage.addGoodToGroup(new StandardGood("Milk", 10, 10), "Products");
+        try (var server = new StoreServerTCP(ServerUtils.PORT, new TCPReceiverFactory(), storage)) {
             server.start();
         } catch (IOException e) {
             throw new RuntimeException(e);

@@ -1,5 +1,6 @@
 package org.example.hw2.operations;
 
+import org.example.exceptions.StorageException;
 import org.example.hw2.storages.GroupedGoodStorage;
 
 import java.util.Optional;
@@ -11,10 +12,12 @@ public class GetGoodQuantityOperation implements Operation {
     }
 
     @Override
-    public void execute(OperationParams params) {
+    public void execute(OperationParams params) throws StorageException {
         var goodName = params.getGoodName();
         var good = storage.getGood(goodName);
-        result = good.orElseThrow().getQuantity();
+        result = good
+                .orElseThrow(() -> new StorageException("Good with name " + goodName + " not found."))
+                .getQuantity();
     }
 
     @Override

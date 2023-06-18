@@ -8,14 +8,16 @@ import java.security.Key;
 import java.security.NoSuchAlgorithmException;
 
 public class CipherCryptographer implements KeyCryptographer {
-
-    public CipherCryptographer() throws InvalidKeyException, NoSuchAlgorithmException {
-        this(KeyGenerator.getInstance("AES").generateKey());
+    static {
+        try {
+            key = KeyGenerator.getInstance("AES").generateKey();
+        } catch (NoSuchAlgorithmException e) {
+            throw new RuntimeException(e);
+        }
     }
 
-    public CipherCryptographer(Key key) throws InvalidKeyException {
+    public CipherCryptographer() throws InvalidKeyException {
         try {
-            this.key = key;
             this.encryptor = Cipher.getInstance("AES");
             this.decryptor = Cipher.getInstance("AES");
             encryptor.init(Cipher.ENCRYPT_MODE, key);
@@ -50,5 +52,5 @@ public class CipherCryptographer implements KeyCryptographer {
 
     private final Cipher encryptor;
     private final Cipher decryptor;
-    private final Key key;
+    private static final Key key;
 }

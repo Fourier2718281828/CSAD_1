@@ -18,13 +18,13 @@ public class PacketCodec implements Codec<Packet> {
         this.bytePutter = bytePutter;
     }
     @Override
-    public byte[] encode(Packet encodable) throws CodecException {
+    public byte[] encrypt(Packet encryptable) throws CodecException {
         try {
-            final var message = encodable.message();
-            final var encryptedMessage = messageCodec.encode(message);
+            final var message = encryptable.message();
+            final var encryptedMessage = messageCodec.encrypt(message);
             final var bMagic = (byte) 0x13;
-            final var source = encodable.source();
-            final var packetId = encodable.packetId();
+            final var source = encryptable.source();
+            final var packetId = encryptable.packetId();
 
             final var wLen = encryptedMessage.length;
             final var bMagicSize = TypeTraits.sizeof(bMagic);
@@ -45,10 +45,6 @@ public class PacketCodec implements Codec<Packet> {
             final var wCrc16Second = checksumEvaluator.evaluateChecksum(encryptedMessage);
             bytePutter.putToBytes(bMagicSize + bSrcSize + bPktIdSize + wLenSize, res, wCrc16First);
             bytePutter.putToBytes(res.length - crcSize, res, wCrc16Second);
-
-            System.out.println("////////////////////////");
-            System.out.println(wCrc16First);
-            System.out.println(wCrc16Second);
 
             assert (TypeTraits.sizeof(wCrc16First) == crcSize);
             assert (TypeTraits.sizeof(wCrc16Second) == crcSize);

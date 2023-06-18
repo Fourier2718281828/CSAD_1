@@ -6,7 +6,6 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import java.security.InvalidKeyException;
-import java.security.NoSuchAlgorithmException;
 
 class CryptographerTest {
     @Test
@@ -43,16 +42,16 @@ class CryptographerTest {
     void decryptEncryptedMultiple(byte[]... datas)
     {
         try {
-            Cryptographer cryptographer = new CipherCryptographer();
+            CryptographicService cryptographer = new CipherCryptographer();
             for(var data : datas) {
                 decryptEncrypted(cryptographer, data);
             }
-        } catch (InvalidKeyException | NoSuchAlgorithmException | CryptographicException e) {
+        } catch (InvalidKeyException | CryptographicException e) {
             fail(e.getMessage());
         }
     }
 
-    void decryptEncrypted(Cryptographer cryptographer, byte[] data) throws CryptographicException {
+    void decryptEncrypted(CryptographicService cryptographer, byte[] data) throws CryptographicException {
         var encrypted = cryptographer.encrypt(data);
         var decrypted = cryptographer.decrypt(encrypted);
         assertArrayEquals(data, decrypted);

@@ -2,32 +2,33 @@ package org.example.packets.encoding;
 
 import org.example.exceptions.CodecException;
 import org.example.exceptions.CryptographicException;
+import org.example.hw2.operations.Operations;
 import org.example.packets.data.Message;
-import org.example.packets.encoding.encryption.Cryptographer;
+import org.example.packets.encoding.encryption.CryptographicService;
 import org.example.utilities.TypeTraits;
 import org.example.utilities.bitwise.ByteGetter;
 import org.example.utilities.bitwise.IntegralBytePutter;
 
 public class MessageCodec implements Codec<Message> {
-    public MessageCodec(IntegralBytePutter bytesPutter, Cryptographer messageCryptographer) {
+    public MessageCodec(IntegralBytePutter bytesPutter, CryptographicService messageCryptographer) {
         this.bytesPutter = bytesPutter;
         this.messageCryptographer = messageCryptographer;
     }
 
     @Override
-    public byte[] encode(Message encodable) throws CodecException {
-        final var type = encodable.type();
-        final var userId = encodable.userId();
-        final var message = encodable.message();
+    public byte[] encrypt(Message encryptable) throws CodecException {
+        final var type = encryptable.type();
+        final var userId = encryptable.userId();
+        final var message = encryptable.message();
 
 
-        final var cTypeSize = TypeTraits.sizeof(type);
+        final var cTypeSize = TypeTraits.sizeof(type.ordinal());
         final var bUserIdSize = TypeTraits.sizeof(userId);
         final var messageSize = message.length();
         final var resSize = cTypeSize + bUserIdSize + messageSize;
 
         var res = new byte[resSize];
-        bytesPutter.putToBytes(0, res, type);
+        bytesPutter.putToBytes(0, res, type.ordinal());
         bytesPutter.putToBytes(cTypeSize, res, userId);
         bytesPutter.putToBytes(cTypeSize + bUserIdSize, res, message.getBytes());
 
@@ -49,7 +50,7 @@ public class MessageCodec implements Codec<Message> {
             final var offset = TypeTraits.sizeof(type) + TypeTraits.sizeof(userId);
             final var bMessage = ByteGetter.getBytes(offset, bytes, bytes.length - offset);
             final var message = new String(bMessage);
-            return new Message(type, userId, message);
+            return new Message(Operations.values()[type], userId, message);
         } catch (CryptographicException e) {
             throw new CodecException("Message decryption failed");
         } catch (RuntimeException e) {
@@ -59,5 +60,5 @@ public class MessageCodec implements Codec<Message> {
     }
 
     private final IntegralBytePutter bytesPutter;
-    private final Cryptographer messageCryptographer;
+    private final CryptographicService messageCryptographer;
 }

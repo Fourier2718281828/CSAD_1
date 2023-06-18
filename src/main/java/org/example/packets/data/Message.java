@@ -1,7 +1,9 @@
 package org.example.packets.data;
 
+import org.example.hw2.operations.Operations;
+
 public record Message(
-        int type,
+        Operations type,
         int userId,
         String message
 ) {}

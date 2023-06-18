@@ -1,4 +1,4 @@
-package org.example.factories;
+package org.example.factories.interfaces;
 
 import org.example.exceptions.CreationException;
 

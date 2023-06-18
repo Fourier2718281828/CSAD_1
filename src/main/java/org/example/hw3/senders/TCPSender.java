@@ -26,9 +26,14 @@ public class TCPSender implements Sender {
             ostream.flush();
             assert(socket.getInetAddress().equals(address));
             ostream.close();
-            socket.close();
         } catch (IOException e) {
             throw new RuntimeException(e);
+        } finally {
+            try {
+                socket.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
     }
 

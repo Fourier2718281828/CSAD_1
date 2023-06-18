@@ -14,7 +14,7 @@ import org.example.hw2.operations.OperationParams;
 import org.example.hw2.operations.Operations;
 import org.example.hw2.storages.GroupedGoodStorage;
 import org.example.hw2.storages.Storage;
-import org.example.hw3.receivers.ReceiverFactory;
+import org.example.hw3.receivers.TCPReceiverFactory;
 import org.example.utilities.ServerUtils;
 import org.example.utilities.ThreadUtils;
 import org.junit.jupiter.api.AfterEach;
@@ -41,7 +41,7 @@ class TCPClientTest {
             storage.createGroup(new Group("Products"));
             storage.addGoodToGroup(new StandardGood("Milk", 11, 12), "Products");
             threadPool = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
-            server = new StoreServerTCP(ServerUtils.PORT, new ReceiverFactory(), storage);
+            server = new StoreServerTCP(ServerUtils.PORT, new TCPReceiverFactory(), storage);
             threadPool.submit(server::start);
         } catch (IOException | HolderException | StorageException e) {
             fail(e.getMessage());

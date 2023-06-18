@@ -43,9 +43,12 @@ public class StoreClientTCP implements Client {
     private void disconnect() {
         if(!isConnected) return;
         try {
-            socket.close();
             istream.close();
             ostream.close();
+            if(socket != null) {
+                socket.close();
+                socket = null;
+            }
         } catch (IOException e) {
             e.printStackTrace();
         }

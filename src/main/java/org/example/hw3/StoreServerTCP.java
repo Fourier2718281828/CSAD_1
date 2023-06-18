@@ -10,7 +10,7 @@ import org.example.hw2.goods.Group;
 import org.example.hw2.goods.StandardGood;
 import org.example.hw2.storages.GroupedGoodStorage;
 import org.example.hw2.storages.Storage;
-import org.example.hw3.receivers.ReceiverFactory;
+import org.example.hw3.receivers.TCPReceiverFactory;
 import org.example.utilities.ServerUtils;
 import org.example.utilities.ThreadUtils;
 
@@ -61,7 +61,7 @@ public class StoreServerTCP implements Server {
         var storage = new Storage();
         storage.createGroup(new Group("Products"));
         storage.addGoodToGroup(new StandardGood("Milk", 10, 10), "Products");
-        try (var server = new StoreServerTCP(ServerUtils.PORT, new ReceiverFactory(), storage)) {
+        try (var server = new StoreServerTCP(ServerUtils.PORT, new TCPReceiverFactory(), storage)) {
             server.start();
         } catch (IOException e) {
             throw new RuntimeException(e);

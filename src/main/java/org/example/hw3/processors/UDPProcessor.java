@@ -12,10 +12,11 @@ import org.example.hw2.operations.Operations;
 import org.example.packets.data.Message;
 import org.example.packets.data.Packet;
 import org.example.packets.encoding.EncryptionProvider;
+import org.example.utilities.ServerUtils;
 
-import java.net.Socket;
+import java.net.DatagramSocket;
 
-public class SocketedProcessor implements Processor {
+public class UDPProcessor implements Processor {
     /*
         Sorry, that might be absolutely irrelevant to pass
         Socket as a parameter to Processor's constructor like that.
@@ -24,8 +25,8 @@ public class SocketedProcessor implements Processor {
         an alternative solution that meets the provided Architecture
         Diagram in HW2. That seems to be rather inflexible.
     */
-    public SocketedProcessor(
-            Socket socket,
+    public UDPProcessor(
+            DatagramSocket socket,
             EncryptionProvider<Packet> encryptor,
             Sender sender,
             SingleParamFactory<Operation, Operations> operationFactory) {
@@ -67,13 +68,13 @@ public class SocketedProcessor implements Processor {
         try {
             var packetToSend = new Packet((byte) 1, 1, new Message(Operations.GET_GOOD_QUANTITY, 1, message));
             var encrypted = encryptor.encrypt(packetToSend);
-            sender.sendMessage(encrypted, socket.getInetAddress());
+            sender.sendMessage(encrypted, ServerUtils.SERVER_IP);
         } catch (CodecException e) {
             throw new RuntimeException(e);
         }
     }
 
-    private final Socket socket;
+    private final DatagramSocket socket;
     private final EncryptionProvider<Packet> encryptor;
     private final Sender sender;
     private final SingleParamFactory<Operation, Operations> operationFactory;

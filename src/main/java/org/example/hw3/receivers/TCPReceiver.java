@@ -8,8 +8,8 @@ import java.io.*;
 import java.net.Socket;
 import java.util.Arrays;
 
-public class StandardReceiver implements Receiver {
-    public StandardReceiver(Socket socket, Decryptor decryptor) {
+public class TCPReceiver implements Receiver {
+    public TCPReceiver(Socket socket, Decryptor decryptor) {
         this.socket = socket;
         this.decryptor = decryptor;
     }

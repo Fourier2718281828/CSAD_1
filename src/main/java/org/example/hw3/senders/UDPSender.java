@@ -17,7 +17,6 @@ public class UDPSender implements Sender {
 
         try {
             var response = new DatagramPacket(message, message.length, address, packet.getPort());
-            assert(socket.getInetAddress().equals(address));
             socket.send(response);
         } catch (IOException e) {
             throw new RuntimeException(e);

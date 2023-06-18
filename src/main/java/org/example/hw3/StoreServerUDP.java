@@ -37,6 +37,7 @@ public class StoreServerUDP implements Server {
                 var packet = new DatagramPacket(buffer, buffer.length);
                 socket.receive(packet);
                 var receiver = receiverFactory.create(socket, packet, storage);
+                receiver.receiveMessage();
                 threadPool.submit(receiver::receiveMessage);
             } catch (IOException e) {
                 throw new RuntimeException(e);

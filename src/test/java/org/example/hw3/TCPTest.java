@@ -32,7 +32,7 @@ import java.util.concurrent.Executors;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-class TCPClientTest {
+class TCPTest {
 
     @BeforeEach
     void setUp() {

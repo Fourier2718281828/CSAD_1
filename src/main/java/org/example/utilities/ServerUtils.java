@@ -7,6 +7,7 @@ public class ServerUtils {
     public static final int PORT = 8080;
     public static final int MAX_PACKET_SIZE = 200;
     public static final InetAddress SERVER_IP;
+    public static boolean TCP_SERVER_WILL_BREAK_DOWN = false;
 
     static {
         try {

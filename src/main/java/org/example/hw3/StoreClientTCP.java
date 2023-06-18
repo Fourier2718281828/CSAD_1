@@ -29,9 +29,9 @@ public class StoreClientTCP implements Client {
     }
 
     private void connect(InetAddress serverAddress, int serverPort) throws ClientException {
-        assert(!isConnected);
         try {
             socket = new Socket(serverAddress, serverPort);
+            socket.setSoTimeout(CONNECTION_AWAITING_DELAY);
             istream = socket.getInputStream();
             ostream = socket.getOutputStream();
         } catch (IOException e) {
@@ -55,14 +55,10 @@ public class StoreClientTCP implements Client {
         isConnected = false;
     }
 
-    private byte[] readAllMessage(InputStream inputStream) {
-        try {
-            var res = new byte[ServerUtils.MAX_PACKET_SIZE];
-            var actualSize = inputStream.read(res);
-            return Arrays.copyOf(res, actualSize);
-        } catch (IOException e) {
-            throw new RuntimeException(e.getMessage());
-        }
+    private byte[] readAllMessage(InputStream inputStream) throws IOException {
+        var res = new byte[ServerUtils.MAX_PACKET_SIZE];
+        var actualSize = inputStream.read(res);
+        return Arrays.copyOf(res, actualSize);
     }
 
     @Override
@@ -80,15 +76,27 @@ public class StoreClientTCP implements Client {
             var readBytes = readAllMessage(istream);
             var decoded = codec.decode(readBytes);
             return decoded.message();
-        }  catch (CreationException e) {
-            throw new RuntimeException(e);
-        } catch (CodecException e) {
+        }  catch (CreationException | CodecException e) {
             throw new RuntimeException(e);
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            boolean success = false;
+            for (int i = 0; i < ATTEMPTS_TO_RENEW_CONNECTION; i++) {
+                try {
+                    Thread.sleep(RECONNECTION_AWAITING_DELAY);
+                    connect(serverAddress, serverPort);
+                    success = true;
+                    break;
+                } catch (InterruptedException | ClientException ex) {
+                    e.printStackTrace();
+                }
+            }
+            if (!success) {
+                throw new ClientException("Connection lost");
+            }
         } finally {
             disconnect();
         }
+        return sendMessage(serverAddress, serverPort, operationType, params);
     }
 
     public static void main(String[] args) {
@@ -120,4 +128,8 @@ public class StoreClientTCP implements Client {
     private final Codec<Packet> codec;
     private final DoubleParamFactory<Packet, Byte, Message> packetFactory;
     private static final AtomicInteger userId = new AtomicInteger(0);
+    private static final long RECONNECTION_AWAITING_DELAY = 2000;
+    private static final int CONNECTION_AWAITING_DELAY = 2000;
+    private static final int ATTEMPTS_TO_RENEW_CONNECTION = 10;
+
 }

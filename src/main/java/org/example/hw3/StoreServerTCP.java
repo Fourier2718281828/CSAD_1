@@ -36,13 +36,19 @@ public class StoreServerTCP implements Server {
             Socket clientSocket;
             try {
                 clientSocket = socket.accept();
-//                try {
-//                    Thread.sleep(1000);
-//                } catch (InterruptedException e) {
-//                    throw new RuntimeException(e);
-//                }
-                var receiver = receiverFactory.create(clientSocket, storage);
-                threadPool.submit(receiver::receiveMessage);
+                if(ServerUtils.TCP_SERVER_WILL_BREAK_DOWN) {
+                    try {
+                        System.out.println("Server broke down");
+                        Thread.sleep(5000);
+                    } catch (InterruptedException e) {
+                        throw new RuntimeException(e);
+                    }
+                    System.out.println("Server works again");
+                    ServerUtils.TCP_SERVER_WILL_BREAK_DOWN = false;
+                } else {
+                    var receiver = receiverFactory.create(clientSocket, storage);
+                    threadPool.submit(receiver::receiveMessage);
+                }
             } catch (IOException | CreationException e) {
                 throw new RuntimeException(e);
             }

@@ -15,6 +15,8 @@ import org.example.hw2.operations.Operations;
 import org.example.hw2.storages.GroupedGoodStorage;
 import org.example.hw2.storages.Storage;
 import org.example.hw3.receivers.TCPReceiverFactory;
+import org.example.packets.data.Packet;
+import org.example.packets.encoding.Codec;
 import org.example.utilities.ServerUtils;
 import org.example.utilities.ThreadUtils;
 import org.junit.jupiter.api.AfterEach;
@@ -108,6 +110,27 @@ class TCPClientTest {
             }
         } catch (CreationException | UnknownHostException e) {
             fail(e.getMessage());
+        }
+    }
+
+    @Test
+    void failedConnectionTest() {
+        try {
+            final var goodName = "Milk";
+            final var codecFactory = new PacketCodecFactory();
+            final var packetFactory = new PacketFactory();
+            final Codec<Packet> codec = codecFactory.create();
+            final var client = new StoreClientTCP(codec, packetFactory);
+            ServerUtils.TCP_SERVER_WILL_BREAK_DOWN = true;
+            var message = client.sendMessage(ServerUtils.SERVER_IP, ServerUtils.PORT,
+                    Operations.GET_GOOD_QUANTITY, new OperationParams("", goodName, 0, 0));
+            final var expectedQuantityOpt = storage.getGood(goodName).map(Good::getQuantity);
+            if(expectedQuantityOpt.isEmpty()) fail("There's no " + goodName + " in storage!");
+            final var expectedResult = "Ok. Result = " + expectedQuantityOpt.get();
+            assertEquals(expectedResult, message.message());
+            ServerUtils.TCP_SERVER_WILL_BREAK_DOWN = false;
+        } catch (CreationException | ClientException e) {
+            fail(e);
         }
     }
 

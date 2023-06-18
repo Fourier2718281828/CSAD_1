@@ -31,6 +31,7 @@ public class StoreServerTCP implements Server {
 
     @Override
     public void start() {
+        System.out.println("Server is running");
         while (true) {
             Socket clientSocket;
             try {

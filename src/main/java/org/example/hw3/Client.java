@@ -7,7 +7,7 @@ import org.example.packets.data.Message;
 
 import java.net.InetAddress;
 
-public interface TCPClient {
+public interface Client {
     Message sendMessage(InetAddress serverAddress, int serverPort,
                         Operations operationType, OperationParams params) throws ClientException;
 }

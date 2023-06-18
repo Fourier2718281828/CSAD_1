@@ -22,7 +22,7 @@ import java.net.UnknownHostException;
 import java.util.Arrays;
 import java.util.concurrent.atomic.AtomicInteger;
 
-public class StoreClientTCP implements TCPClient, AutoCloseable {
+public class StoreClientTCP implements Client {
     public StoreClientTCP(Codec<Packet> codec, DoubleParamFactory<Packet, Byte, Message> packetFactory) {
         this.codec = codec;
         this.packetFactory = packetFactory;
@@ -41,7 +41,7 @@ public class StoreClientTCP implements TCPClient, AutoCloseable {
     }
 
     private void disconnect() {
-        assert(isConnected);
+        if(!isConnected) return;
         try {
             socket.close();
             istream.close();
@@ -64,7 +64,7 @@ public class StoreClientTCP implements TCPClient, AutoCloseable {
 
     @Override
     public Message sendMessage(InetAddress serverAddress, int serverPort,
-                               Operations operationType, OperationParams params)  {
+                               Operations operationType, OperationParams params) throws ClientException {
         try {
             connect(serverAddress, serverPort);
             var messageTxt = params.toString();
@@ -77,9 +77,7 @@ public class StoreClientTCP implements TCPClient, AutoCloseable {
             var readBytes = readAllMessage(istream);
             var decoded = codec.decode(readBytes);
             return decoded.message();
-        } catch (ClientException e) {
-            throw new RuntimeException(e);
-        } catch (CreationException e) {
+        }  catch (CreationException e) {
             throw new RuntimeException(e);
         } catch (CodecException e) {
             throw new RuntimeException(e);
@@ -90,18 +88,14 @@ public class StoreClientTCP implements TCPClient, AutoCloseable {
         }
     }
 
-    @Override
-    public void close() throws ClientException {
-        if(isConnected) disconnect();
-    }
-
     public static void main(String[] args) {
         try {
             var serverAddress = InetAddress.getLocalHost();
             var codecFactory = new PacketCodecFactory();
             var codec = codecFactory.create();
             var packetFactory = new PacketFactory();
-            try (var client = new StoreClientTCP(codec, packetFactory)){
+            try {
+                var client = new StoreClientTCP(codec, packetFactory);
                 var received = client.sendMessage(serverAddress, ServerUtils.PORT, Operations.GET_GOOD_QUANTITY,
                         new OperationParams("", "Milk", 0, 0));
                 System.out.println(received);

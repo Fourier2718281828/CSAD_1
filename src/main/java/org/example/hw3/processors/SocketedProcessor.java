@@ -52,7 +52,7 @@ public class SocketedProcessor implements Processor {
                 messageToSend += ". Result = " + result.get();
             sendMessage(messageToSend);
         } catch (CreationException e) {
-            sendMessage("Invalid operation id.");
+            sendMessage("Operations factory not initialized!");
         } catch (StorageException e) {
             sendMessage(e.getMessage());
         }

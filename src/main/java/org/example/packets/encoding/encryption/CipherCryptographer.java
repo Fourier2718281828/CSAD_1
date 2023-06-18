@@ -3,17 +3,19 @@ package org.example.packets.encoding.encryption;
 import org.example.exceptions.CryptographicException;
 
 import javax.crypto.*;
+import javax.crypto.spec.SecretKeySpec;
 import java.security.InvalidKeyException;
 import java.security.Key;
 import java.security.NoSuchAlgorithmException;
 
 public class CipherCryptographer implements KeyCryptographer {
     static {
-        try {
-            key = KeyGenerator.getInstance("AES").generateKey();
-        } catch (NoSuchAlgorithmException e) {
-            throw new RuntimeException(e);
-        }
+        //key = KeyGenerator.getInstance("AES").generateKey();
+        byte[] keyBytes = {
+                (byte) 0x00, (byte) 0x01, (byte) 0x02, (byte) 0x03, (byte) 0x04, (byte) 0x05, (byte) 0x06, (byte) 0x07,
+                (byte) 0x08, (byte) 0x09, (byte) 0x0A, (byte) 0x0B, (byte) 0x0C, (byte) 0x0D, (byte) 0x0E, (byte) 0x0F
+        };
+        key = new SecretKeySpec(keyBytes, "AES");
     }
 
     public CipherCryptographer() throws InvalidKeyException {

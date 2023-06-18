@@ -21,10 +21,8 @@ public class ReceiverFactory implements DoubleParamFactory<Receiver, Socket, Gro
         var operationFactory = new OperationFactory(storage);
         var sender = new TCPSender(socket);
         var socketedProcessor = new SocketedProcessor(socket, codec, sender, operationFactory);
-        var multyThreadedProcessor = socketedProcessor;//new MultyThreadedProcessor(socketedProcessor);
-        var standardDecryptor = new StandardDecryptor(codec, multyThreadedProcessor);
-        var multyThreadedDecryptor = standardDecryptor;//new MultyThreadedDecryptor(standardDecryptor);
+        var standardDecryptor = new StandardDecryptor(codec, socketedProcessor);
         var readerFactory = new BufferedIOProcessorsFactory();
-        return new StandardReceiver(socket, readerFactory, multyThreadedDecryptor);
+        return new StandardReceiver(socket, standardDecryptor);
     }
 }

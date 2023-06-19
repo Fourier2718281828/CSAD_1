@@ -25,37 +25,49 @@ public class StoreClientUDP implements Client {
     }
     @Override
     public Message sendMessage(InetAddress serverAddress, int serverPort, Operations operationType, OperationParams params) throws ClientException {
-        connect(serverAddress, serverPort);
+        connect();
         Packet packet;
         try {
             packet = packetFactory.create((byte) 2, new Message(operationType,
                     userId.getAndIncrement(), params.toString()));
             var encrypted = codec.encrypt(packet);
             var datagramPacket = new DatagramPacket(encrypted, encrypted.length, serverAddress, serverPort);
-            socket.send(datagramPacket);
+            var success = false;
+            var numberOfRetries = 0;
+            byte[] received = null;
 
-            var responseBuffer = new byte[ServerUtils.MAX_PACKET_SIZE];
-            var responsePacket = new DatagramPacket(responseBuffer, responseBuffer.length);
-            socket.receive(responsePacket);
-            var received = Arrays.copyOfRange(responsePacket.getData(), 0, responsePacket.getLength());
-            var decrypted = codec.decode(received);
-            return decrypted.message();
-        } catch (CreationException e) {
-            throw new RuntimeException(e);
-        } catch (CodecException e) {
-            throw new RuntimeException(e);
-        } catch (IOException e) {
+            while (!success && numberOfRetries < NUMBER_OF_TRIES_TO_RESEND) {
+                socket.send(datagramPacket);
+                var responseBuffer = new byte[ServerUtils.MAX_PACKET_SIZE];
+                var responsePacket = new DatagramPacket(responseBuffer, responseBuffer.length);
+
+                try {
+                    socket.setSoTimeout(AWAITING_RESPONSE_TIME);
+                    socket.receive(responsePacket);
+                    received = Arrays.copyOfRange(responsePacket.getData(), 0, responsePacket.getLength());
+                    success = true;
+                } catch (SocketTimeoutException e) {
+                    ++numberOfRetries;
+                }
+            }
+
+            if (success) {
+                var decrypted = codec.decode(received);
+                return decrypted.message();
+            } else {
+                throw new ClientException("UDP connection lost.");
+            }
+
+        } catch (CreationException | CodecException | IOException e) {
             throw new RuntimeException(e);
         } finally {
             disconnect();
         }
     }
 
-    private void connect(InetAddress serverAddress, int serverPort) throws ClientException {
+    private void connect() throws ClientException {
         try {
             this.socket = new DatagramSocket();
-            this.serverAdress = serverAddress;
-            this.serverPort = serverPort;
         } catch (SocketException e) {
             throw new ClientException(e.getMessage());
         }
@@ -65,8 +77,6 @@ public class StoreClientUDP implements Client {
         if (socket != null) {
             socket.close();
             socket = null;
-            serverAdress = null;
-            serverPort = -1;
         }
     }
 
@@ -93,9 +103,9 @@ public class StoreClientUDP implements Client {
     }
 
     private DatagramSocket socket;
-    private InetAddress serverAdress;
-    private int serverPort;
     private final Codec<Packet> codec;
     private final DoubleParamFactory<Packet, Byte, Message> packetFactory;
     private static final AtomicInteger userId = new AtomicInteger(0);
+    private static final int NUMBER_OF_TRIES_TO_RESEND = 3;
+    private static final int AWAITING_RESPONSE_TIME = 2000;
 }

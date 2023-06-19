@@ -8,6 +8,7 @@ public class ServerUtils {
     public static final int MAX_PACKET_SIZE = 200;
     public static final InetAddress SERVER_IP;
     public static boolean TCP_SERVER_WILL_BREAK_DOWN = false;
+    public static boolean UDP_PACKAGE_WILL_BE_LOST = false;
 
     static {
         try {

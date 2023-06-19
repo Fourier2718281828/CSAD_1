@@ -27,12 +27,14 @@ public class StoreServerTCP implements Server {
         this.receiverFactory = receiverFactory;
         this.threadPool = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
         this.storage = storage;
+        this.hasStarted = false;
     }
 
     @Override
     public void start() {
+        hasStarted = true;
         System.out.println("Server is running");
-        while (true) {
+        while (hasStarted()) {
             Socket clientSocket;
             try {
                 clientSocket = socket.accept();
@@ -57,9 +59,18 @@ public class StoreServerTCP implements Server {
 
     @Override
     public void close() throws IOException {
+        stop();
         socket.close();
         ThreadUtils.shutDownThreadPool(threadPool,
                 () -> System.out.println("Waiting for TCP-server's thread pool to shut down"));
+    }
+
+    public void stop() {
+        hasStarted = false;
+    }
+
+    public boolean hasStarted() {
+        return hasStarted;
     }
 
     public static void main(String[] args) throws HolderException, StorageException {
@@ -74,6 +85,7 @@ public class StoreServerTCP implements Server {
         }
     }
 
+    private volatile boolean hasStarted;
     private final ServerSocket socket;
     private final DoubleParamFactory<Receiver, Socket, GroupedGoodStorage> receiverFactory;
     private final ExecutorService threadPool;

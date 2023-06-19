@@ -15,6 +15,8 @@ import org.example.hw2.operations.Operations;
 import org.example.hw2.storages.GroupedGoodStorage;
 import org.example.hw2.storages.Storage;
 import org.example.hw3.receivers.UDPReceiverFactory;
+import org.example.packets.data.Packet;
+import org.example.packets.encoding.Codec;
 import org.example.utilities.ServerUtils;
 import org.example.utilities.ThreadUtils;
 import org.junit.jupiter.api.AfterEach;
@@ -74,13 +76,13 @@ class UDPTest {
             };
 
             final var results = new ConcurrentHashMap<Client, String>();
-            final var serverAdress = InetAddress.getLocalHost();
+            final var serverAddress = InetAddress.getLocalHost();
             final var goodName = "Milk";
             final var threadPoolClients = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
             for(var client : clients) {
                 threadPoolClients.submit(() -> {
                     try {
-                        var message = client.sendMessage(serverAdress, ServerUtils.PORT,
+                        var message = client.sendMessage(serverAddress, ServerUtils.PORT,
                                 Operations.GET_GOOD_QUANTITY, new OperationParams("", goodName, 0, 0));
                         results.put(client, message.message());
                     } catch (ClientException e) {
@@ -102,7 +104,25 @@ class UDPTest {
     }
 
     @Test
-    void failedConnectionTest() {
+    void lostMessageTest() {
+        try {
+            final var codecFactory = new PacketCodecFactory();
+            final var packetFactory = new PacketFactory();
+            final Codec<Packet> codec;
+            codec = codecFactory.create();
+            Client client = new StoreClientUDP(codec, packetFactory);
+            final var goodName = "Milk";
+            ServerUtils.UDP_PACKAGE_WILL_BE_LOST = true;
+            var response = client.sendMessage(ServerUtils.SERVER_IP, ServerUtils.PORT,
+                    Operations.GET_GOOD_QUANTITY, new OperationParams("", goodName, 0, 0));
+            final var expectedQuantityOpt = storage.getGood(goodName).map(Good::getQuantity);
+            if(expectedQuantityOpt.isEmpty()) fail("There's no " + goodName + " in storage!");
+            final var expectedResult = "Ok. Result = " + expectedQuantityOpt.get();
+            assertEquals(expectedResult, response.message());
+            ServerUtils.UDP_PACKAGE_WILL_BE_LOST = false;
+        } catch (ClientException | CreationException e) {
+            fail(e.getMessage());
+        }
 
     }
 

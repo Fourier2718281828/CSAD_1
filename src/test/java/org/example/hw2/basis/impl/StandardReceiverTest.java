@@ -12,7 +12,7 @@ import org.example.hw2.goods.StandardGood;
 import org.example.hw2.operations.OperationParams;
 import org.example.hw2.operations.Operations;
 import org.example.hw2.storages.GroupedGoodStorage;
-import org.example.hw2.storages.Storage;
+import org.example.hw2.storages.RAMStorage;
 import org.example.utilities.Pair;
 import org.junit.jupiter.api.*;
 
@@ -187,7 +187,7 @@ class StandardReceiverTest {
     @BeforeEach
     public void setUp() throws StorageException {
 //        this.threadPool = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
-        storage = new Storage();
+        storage = new RAMStorage();
         storage.createGroup(new Group("Group1"));
         storage.createGroup(new Group("Group2"));
         storage.addGoodToGroup(new StandardGood("Milk", 10.0), "Group1");

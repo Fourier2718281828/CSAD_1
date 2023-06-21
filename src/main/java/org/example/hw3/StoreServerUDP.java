@@ -9,7 +9,7 @@ import org.example.hw2.basis.Receiver;
 import org.example.hw2.goods.Group;
 import org.example.hw2.goods.StandardGood;
 import org.example.hw2.storages.GroupedGoodStorage;
-import org.example.hw2.storages.Storage;
+import org.example.hw2.storages.RAMStorage;
 import org.example.hw3.receivers.UDPReceiverFactory;
 import org.example.utilities.ServerUtils;
 import org.example.utilities.ThreadUtils;
@@ -64,7 +64,7 @@ public class StoreServerUDP implements Server {
 
     public static void main(String[] args) throws HolderException, StorageException {
         OperationFactoryInitializer.holdAllOperations();
-        var storage = new Storage();
+        var storage = new RAMStorage();
         storage.createGroup(new Group("Products"));
         storage.addGoodToGroup(new StandardGood("Milk", 10, 10), "Products");
         try (var server = new StoreServerUDP(ServerUtils.PORT, storage, new UDPReceiverFactory())) {

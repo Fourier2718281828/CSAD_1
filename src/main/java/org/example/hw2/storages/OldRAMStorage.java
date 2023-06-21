@@ -8,9 +8,9 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 
-public class Storage2 implements GroupedGoodStorage {
+public class OldRAMStorage implements GroupedGoodStorage {
 
-    public Storage2() {
+    public OldRAMStorage() {
         this.groups = new ConcurrentHashMap<>();
     }
 

@@ -13,7 +13,7 @@ import org.example.hw2.goods.StandardGood;
 import org.example.hw2.operations.OperationParams;
 import org.example.hw2.operations.Operations;
 import org.example.hw2.storages.GroupedGoodStorage;
-import org.example.hw2.storages.Storage;
+import org.example.hw2.storages.RAMStorage;
 import org.example.hw3.receivers.TCPReceiverFactory;
 import org.example.packets.data.Packet;
 import org.example.packets.encoding.Codec;
@@ -39,7 +39,7 @@ class TCPTest {
 
         try {
             OperationFactoryInitializer.holdAllOperations();
-            storage = new Storage();
+            storage = new RAMStorage();
             storage.createGroup(new Group("Products"));
             storage.addGoodToGroup(new StandardGood("Milk", 11, 12), "Products");
             threadPool = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());

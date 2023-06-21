@@ -7,7 +7,7 @@ import java.util.Optional;
 
 public interface GoodStorage {
     void addGoodToGroup(Good good, String groupName) throws StorageException;
-    Optional<Good> getGood(String goodName) ;
+    Optional<Good> getGood(String goodName);
     void updateGood(Good good) throws StorageException;
     void deleteGood(String name) throws StorageException;
 }

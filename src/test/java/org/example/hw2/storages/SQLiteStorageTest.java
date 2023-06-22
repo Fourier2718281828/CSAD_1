@@ -20,7 +20,7 @@ class SQLiteStorageTest {
     @AfterAll
     public static void tearDown() throws Exception {
         storage.close();
-        var pathToDBFile = "GroupedGoodStorage";
+        var pathToDBFile = SQLiteStorage.getFileName();
         try {
             Files.delete(Paths.get(pathToDBFile));
         } catch (IOException e) {
@@ -36,13 +36,19 @@ class SQLiteStorageTest {
             assertTrue(storage.getGroup(group.getName()).isEmpty());
             storage.createGroup(group);
             assertTrue(storage.getGroup(group.getName()).isPresent());
+
+            try {
+                storage.createGroup(new Group(group.getName()));
+                fail("Db does not throw an exception, when creating an already existent group");
+            } catch (StorageException ignored) {
+
+            }
         } catch (StorageException e) {
             fail(e.getMessage());
         }
     }
 
     @Test
-    @Disabled
     @DisplayName("Update group ")
     void updateGroupTest() {
         try {
@@ -70,6 +76,7 @@ class SQLiteStorageTest {
     }
 
     @Test
+    @DisplayName("Delete group")
     void deleteGroupTest() {
         try {
             final var toDelete =  new Group("deleteGroupTest");
@@ -83,7 +90,6 @@ class SQLiteStorageTest {
     }
 
     @Test
-    @Disabled
     @DisplayName("Create and Read good")
     void createAndReadGoodTest() {
         try {
@@ -99,13 +105,13 @@ class SQLiteStorageTest {
             assertEquals(readGood.getName(), good.getName());
             assertEquals(readGood.getQuantity(), good.getQuantity());
             assertEquals(readGood.getPrice(), good.getPrice(), 0.001);
+
         } catch (StorageException e) {
             fail(e.getMessage());
         }
     }
 
     @Test
-    @Disabled
     @DisplayName("Update good")
     void updateGoodTest() {
         try {
@@ -129,13 +135,20 @@ class SQLiteStorageTest {
             assertEquals(updatedReadGood.getPrice(), toUpdate.getPrice(), 0.001);
 
             assertTrue(storage.getGroup(group.getName()).isPresent());
+
+            try {
+                storage.updateGood(new StandardGood("NonExistentGood", 1231, 32.4));
+                fail("Db does not throw an exception, when updating a non-existent good");
+            } catch (StorageException ignored) {
+
+            }
         } catch (StorageException e) {
             fail(e.getMessage());
         }
     }
 
     @Test
-    @Disabled
+    @DisplayName("Delete good")
     void deleteGoodTest() {
         try {
             final var group =  new Group("deleteGoodTest");
@@ -150,6 +163,14 @@ class SQLiteStorageTest {
             storage.deleteGood(toDelete.getName());
             assertTrue(storage.getGroup(group.getName()).isPresent());
             assertTrue(storage.getGroup(toDelete.getName()).isEmpty());
+
+            //When good does not exist:
+            try {
+                storage.deleteGood("NonExistentGood");
+                fail("Db does not throw an exception, when deleting a non-existent good");
+            } catch (StorageException ignored) {
+
+            }
         } catch (StorageException e) {
             fail(e.getMessage());
         }

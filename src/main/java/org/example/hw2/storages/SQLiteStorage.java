@@ -4,25 +4,25 @@ import org.example.exceptions.StorageException;
 import org.example.hw2.goods.Good;
 import org.example.hw2.goods.GoodsGroup;
 import org.example.hw2.goods.Group;
+import org.example.hw2.goods.StandardGood;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
-import java.util.Map;
-import java.util.Optional;
-import java.util.TreeMap;
+import java.util.*;
 
 public class SQLiteStorage implements AutoCloseableStorage {
     private enum CRUD {
-        CREATE_GROUP, GET_GROUP, UPDATE_GROUP, DELETE_GROUP,
+        CREATE_GROUP, GET_GROUP, DELETE_GROUP,
         CREATE_GOOD, GET_GOOD, UPDATE_GOOD, DELETE_GOOD,
+        GET_GOODS_OF_GROUP
     }
 
     private SQLiteStorage() {
         try {
             Class.forName("org.sqlite.JDBC");
-            this.dbConnection = DriverManager.getConnection("jdbc:sqlite:" + dbName);
+            this.dbConnection = DriverManager.getConnection("jdbc:sqlite:" + dbFileName);
             initTables();
             initPreparedStatements();
         } catch (ClassNotFoundException | SQLException e) {
@@ -33,13 +33,14 @@ public class SQLiteStorage implements AutoCloseableStorage {
     private void initPreparedStatements() throws SQLException {
         this.createGroup = dbConnection.prepareStatement(sqlCodes.get(CRUD.CREATE_GROUP));
         this.getGroup    = dbConnection.prepareStatement(sqlCodes.get(CRUD.GET_GROUP));
-        //this.updateGroup = dbConnection.prepareStatement(sqlCodes.get(CRUD.UPDATE_GROUP));
         this.deleteGroup = dbConnection.prepareStatement(sqlCodes.get(CRUD.DELETE_GROUP));
 
-        //this.createGood  = dbConnection.prepareStatement(sqlCodes.get(CRUD.CREATE_GOOD));
-        //this.getGood     = dbConnection.prepareStatement(sqlCodes.get(CRUD.GET_GOOD));
-        //this.updateGood  = dbConnection.prepareStatement(sqlCodes.get(CRUD.UPDATE_GOOD));
-        //this.deleteGood  = dbConnection.prepareStatement(sqlCodes.get(CRUD.DELETE_GOOD));
+        this.createGood  = dbConnection.prepareStatement(sqlCodes.get(CRUD.CREATE_GOOD));
+        this.getGood     = dbConnection.prepareStatement(sqlCodes.get(CRUD.GET_GOOD));
+        this.updateGood  = dbConnection.prepareStatement(sqlCodes.get(CRUD.UPDATE_GOOD));
+        this.deleteGood  = dbConnection.prepareStatement(sqlCodes.get(CRUD.DELETE_GOOD));
+
+        this.getGoodsOfGroup = dbConnection.prepareStatement(sqlCodes.get(CRUD.GET_GOODS_OF_GROUP));
     }
 
     private void initTables() throws SQLException {
@@ -51,7 +52,7 @@ public class SQLiteStorage implements AutoCloseableStorage {
         final var sqlCreation = """
                 CREATE TABLE IF NOT EXISTS Good (
                   good_id INTEGER PRIMARY KEY AUTOINCREMENT,
-                  good_name TEXT NOT NULL,
+                  good_name TEXT NOT NULL UNIQUE,
                   quantity INTEGER NOT NULL,
                   price REAL NOT NULL,
                   group_id INTEGER,
@@ -65,7 +66,7 @@ public class SQLiteStorage implements AutoCloseableStorage {
         final var sqlCreation = """
                 CREATE TABLE IF NOT EXISTS GoodsGroup (
                     group_id INTEGER PRIMARY KEY AUTOINCREMENT,
-                    group_name TEXT NOT NULL
+                    group_name TEXT NOT NULL UNIQUE
                 );
                 """;
         executeStatement(sqlCreation);
@@ -88,35 +89,77 @@ public class SQLiteStorage implements AutoCloseableStorage {
     public void close() throws Exception {
         createGroup.close();
         getGroup.close();
-        //updateGroup.close();
         deleteGroup.close();
-        //TODO uncomment when initialized
-        //createGood.close();
-        //getGood.close();
-        //updateGood.close();
-        //deleteGood.close();
+
+        createGood.close();
+        getGood.close();
+        updateGood.close();
+        deleteGood.close();
+
+        getGoodsOfGroup.close();
 
         dbConnection.close();
     }
 
     @Override
     public void addGoodToGroup(Good good, String groupName) throws StorageException {
-
+        try {
+            createGood.setString(1, good.getName());
+            createGood.setInt(2, good.getQuantity());
+            createGood.setDouble(3, good.getPrice());
+            createGood.setString(4, groupName);
+            var rowsModified = createGood.executeUpdate();
+            if(rowsModified != 1)
+                throw new StorageException("Cannot add the already existent good: " + good.getName());
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Override
     public Optional<Good> getGood(String goodName) {
-        return Optional.empty();
+        try {
+            getGood.setString(1, goodName);
+            var res = getGood.executeQuery();
+            if(!res.next())
+                return Optional.empty();
+            var foundGoodName = res.getString("good_name");
+            var foundGoodQuantity = res.getInt("quantity");
+            var foundGoodPrice = res.getDouble("price");
+            return Optional.of(new StandardGood(foundGoodName, foundGoodQuantity, foundGoodPrice));
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Override
     public void updateGood(Good good) throws StorageException {
-
+        try {
+            updateGood.setInt(1, good.getQuantity());
+            updateGood.setDouble(2, good.getPrice());
+            updateGood.setString(3, good.getName());
+            var rowsModified = updateGood.executeUpdate();
+            if(rowsModified == 0)
+                throw new StorageException("Cannot update a non-existent good: " + good.getName());
+            if(rowsModified != 1)
+                throw new SQLException("DB invariant broken: database allows having several goods with one name.");
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Override
     public void deleteGood(String name) throws StorageException {
-
+        try {
+            deleteGood.setString(1, name);
+            var rowsModified = deleteGood.executeUpdate();
+            if(rowsModified == 0)
+                throw new StorageException("Cannot delete a non-existent good: " + name);
+            if(rowsModified != 1)
+                throw new SQLException("DB invariant broken: database allows having several goods with one name.");
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Override
@@ -124,10 +167,25 @@ public class SQLiteStorage implements AutoCloseableStorage {
         try {
             createGroup.setString(1, newGroup.getName());
             int rowsModified = createGroup.executeUpdate();
-            if(rowsModified <= 0)
-                throw new StorageException("The group with name " + newGroup.getName() + " already exists.");
+            if(rowsModified != 1)
+                throw new SQLException("DB invariant broken: database modifies several rows when adding only one.");
+
+            for (var good : newGroup.getGoods()) {
+                try {
+                    addGoodToGroup(good, newGroup.getName());
+                } catch (StorageException e) {
+                    deleteGroup(newGroup.getName());
+                    throw new StorageException("Cannot add the good " + good.getName() +
+                            " with group " + newGroup.getName() + " as it already exists in" +
+                            "another group.");
+                }
+            }
+
         } catch (SQLException e) {
-            throw new RuntimeException(e);
+            if(e.getMessage().contains("UNIQUE constraint failed"))
+                throw new StorageException("The group with name " + newGroup.getName() + " already exists.");
+            else
+                throw new RuntimeException(e);
         }
     }
 
@@ -135,13 +193,16 @@ public class SQLiteStorage implements AutoCloseableStorage {
     public Optional<GoodsGroup> getGroup(String name) {
         try {
             getGroup.setString(1, name);
-            var res = getGroup.executeQuery();
-            if(!res.next())
+            var queryRes = getGroup.executeQuery();
+            if(!queryRes.next())
                 return Optional.empty();
-            var groupName = res.getString("group_name");
-            // TODO make to get goods and not only the group's name
-            // var goods = null;
-            return Optional.of(new Group(groupName));
+            var groupName = queryRes.getString("group_name");
+            var goods = getGoodsOfGroup(groupName);
+            var res = new Group(groupName);
+            for(var good : goods) {
+                res.addGood(good);
+            }
+            return Optional.of(res);
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
@@ -149,6 +210,22 @@ public class SQLiteStorage implements AutoCloseableStorage {
 
     @Override
     public void updateGroup(GoodsGroup group) throws StorageException {
+        var gotGroup = getGroup(group.getName())
+                .orElseThrow(() -> new StorageException("Cannot update a non-existent group " + group.getName()));
+        for(var good : gotGroup.getGoods()) {
+            deleteGood(good.getName());
+        }
+        for(var good : group.getGoods()) {
+            try {
+                addGoodToGroup(good, group.getName());
+            } catch (StorageException e) {
+                deleteGroup(gotGroup.getName());
+                createGroup(gotGroup);
+                throw new StorageException("Cannot add an already existent good " +
+                        good.getName() + " while updating the group " + gotGroup.getName());
+            }
+        }
+
 
     }
 
@@ -165,18 +242,39 @@ public class SQLiteStorage implements AutoCloseableStorage {
         }
     }
 
+    private Iterable<Good> getGoodsOfGroup(String groupName) {
+        try {
+            var res = new ArrayList<Good>();
+            getGoodsOfGroup.setString(1, groupName);
+            var queryRes = getGoodsOfGroup.executeQuery();
+            while(queryRes.next()) {
+                var foundGoodName = queryRes.getString("good_name");
+                var foundGoodQuantity = queryRes.getInt("quantity");
+                var foundGoodPrice = queryRes.getDouble("price");
+                res.add(new StandardGood(foundGoodName, foundGoodQuantity, foundGoodPrice));
+            }
+            return res;
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public static String getFileName() {
+        return dbFileName;
+    }
+
     private Connection dbConnection;
     private PreparedStatement createGroup;
     private PreparedStatement getGroup;
-    private PreparedStatement updateGroup;
     private PreparedStatement deleteGroup;
     private PreparedStatement createGood;
     private PreparedStatement getGood;
     private PreparedStatement updateGood;
     private PreparedStatement deleteGood;
+    private PreparedStatement getGoodsOfGroup;
     private static SQLiteStorage instance;
-    private static final String dbName = "GroupedGoodStorage";
-    private static Map<CRUD, String> sqlCodes = new TreeMap<>();
+    private static final String dbFileName = "GroupedGoodStorage.sqlite";
+    private static final Map<CRUD, String> sqlCodes = new TreeMap<>();
 
     static {
         sqlCodes.put(CRUD.CREATE_GROUP, """
@@ -188,8 +286,6 @@ public class SQLiteStorage implements AutoCloseableStorage {
                 FROM 'GoodsGroup'
                 WHERE group_name = ( ? );
                 """);
-        sqlCodes.put(CRUD.UPDATE_GROUP, """
-                """);
         sqlCodes.put(CRUD.DELETE_GROUP, """
                 DELETE
                 FROM 'GoodsGroup'
@@ -197,12 +293,36 @@ public class SQLiteStorage implements AutoCloseableStorage {
                 """);
 
         sqlCodes.put(CRUD.CREATE_GOOD, """
+                INSERT INTO 'Good' (good_name, quantity, price, group_id)
+                VALUES (( ? ), ( ? ), ( ? ), ( SELECT group_id
+                                               FROM 'GoodsGroup'
+                                               WHERE group_name = ( ? )
+                                             )
+                       );
                 """);
         sqlCodes.put(CRUD.GET_GOOD, """
+                SELECT *
+                FROM 'Good'
+                WHERE good_name = ( ? )
                 """);
         sqlCodes.put(CRUD.UPDATE_GOOD, """
+                UPDATE 'Good'
+                SET quantity = ( ? ), price = ( ? )
+                WHERE good_name = ( ? )
                 """);
         sqlCodes.put(CRUD.DELETE_GOOD, """
+                DELETE
+                FROM 'Good'
+                WHERE good_name = ( ? )
+                """);
+
+        sqlCodes.put(CRUD.GET_GOODS_OF_GROUP, """
+                SELECT *
+                FROM 'Good'
+                WHERE group_id = ( SELECT group_id
+                                   FROM 'GoodsGroup'
+                                   WHERE group_name = ( ? )
+                                 );
                 """);
     }
 }

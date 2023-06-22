@@ -103,16 +103,18 @@ public class SQLiteStorage implements AutoCloseableStorage {
 
     @Override
     public void addGoodToGroup(Good good, String groupName) throws StorageException {
-        try {
-            createGood.setString(1, good.getName());
-            createGood.setInt(2, good.getQuantity());
-            createGood.setDouble(3, good.getPrice());
-            createGood.setString(4, groupName);
-            var rowsModified = createGood.executeUpdate();
-            if(rowsModified != 1)
-                throw new StorageException("Cannot add the already existent good: " + good.getName());
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
+        synchronized (createGood) {
+            try {
+                createGood.setString(1, good.getName());
+                createGood.setInt(2, good.getQuantity());
+                createGood.setDouble(3, good.getPrice());
+                createGood.setString(4, groupName);
+                var rowsModified = createGood.executeUpdate();
+                if(rowsModified != 1)
+                    throw new StorageException("Cannot add the already existent good: " + good.getName());
+            } catch (SQLException e) {
+                throw new RuntimeException(e);
+            }
         }
     }
 
@@ -134,58 +136,64 @@ public class SQLiteStorage implements AutoCloseableStorage {
 
     @Override
     public void updateGood(Good good) throws StorageException {
-        try {
-            updateGood.setInt(1, good.getQuantity());
-            updateGood.setDouble(2, good.getPrice());
-            updateGood.setString(3, good.getName());
-            var rowsModified = updateGood.executeUpdate();
-            if(rowsModified == 0)
-                throw new StorageException("Cannot update a non-existent good: " + good.getName());
-            if(rowsModified != 1)
-                throw new SQLException("DB invariant broken: database allows having several goods with one name.");
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
+        synchronized (updateGood) {
+            try {
+                updateGood.setInt(1, good.getQuantity());
+                updateGood.setDouble(2, good.getPrice());
+                updateGood.setString(3, good.getName());
+                var rowsModified = updateGood.executeUpdate();
+                if(rowsModified == 0)
+                    throw new StorageException("Cannot update a non-existent good: " + good.getName());
+                if(rowsModified != 1)
+                    throw new SQLException("DB invariant broken: database allows having several goods with one name.");
+            } catch (SQLException e) {
+                throw new RuntimeException(e);
+            }
         }
     }
 
     @Override
     public void deleteGood(String name) throws StorageException {
-        try {
-            deleteGood.setString(1, name);
-            var rowsModified = deleteGood.executeUpdate();
-            if(rowsModified == 0)
-                throw new StorageException("Cannot delete a non-existent good: " + name);
-            if(rowsModified != 1)
-                throw new SQLException("DB invariant broken: database allows having several goods with one name.");
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
+        synchronized (deleteGood) {
+            try {
+                deleteGood.setString(1, name);
+                var rowsModified = deleteGood.executeUpdate();
+                if(rowsModified == 0)
+                    throw new StorageException("Cannot delete a non-existent good: " + name);
+                if(rowsModified != 1)
+                    throw new SQLException("DB invariant broken: database allows having several goods with one name.");
+            } catch (SQLException e) {
+                throw new RuntimeException(e);
+            }
         }
     }
 
     @Override
     public void createGroup(GoodsGroup newGroup) throws StorageException {
-        try {
-            createGroup.setString(1, newGroup.getName());
-            int rowsModified = createGroup.executeUpdate();
-            if(rowsModified != 1)
-                throw new SQLException("DB invariant broken: database modifies several rows when adding only one.");
+        synchronized (createGroup) {
+            try {
+                createGroup.setString(1, newGroup.getName());
+                int rowsModified = createGroup.executeUpdate();
+                if(rowsModified != 1)
+                    throw new SQLException("DB invariant broken: database modifies several rows when adding only one.");
 
-            for (var good : newGroup.getGoods()) {
-                try {
-                    addGoodToGroup(good, newGroup.getName());
-                } catch (StorageException e) {
-                    deleteGroup(newGroup.getName());
-                    throw new StorageException("Cannot add the good " + good.getName() +
-                            " with group " + newGroup.getName() + " as it already exists in" +
-                            "another group.");
+                for (var good : newGroup.getGoods()) {
+                    try {
+                        addGoodToGroup(good, newGroup.getName());
+                    } catch (StorageException e) {
+                        deleteGroup(newGroup.getName());
+                        throw new StorageException("Cannot add the good " + good.getName() +
+                                " with group " + newGroup.getName() + " as it already exists in" +
+                                "another group.");
+                    }
                 }
-            }
 
-        } catch (SQLException e) {
-            if(e.getMessage().contains("UNIQUE constraint failed"))
-                throw new StorageException("The group with name " + newGroup.getName() + " already exists.");
-            else
-                throw new RuntimeException(e);
+            } catch (SQLException e) {
+                if(e.getMessage().contains("UNIQUE constraint failed"))
+                    throw new StorageException("The group with name " + newGroup.getName() + " already exists.");
+                else
+                    throw new RuntimeException(e);
+            }
         }
     }
 
@@ -209,7 +217,7 @@ public class SQLiteStorage implements AutoCloseableStorage {
     }
 
     @Override
-    public void updateGroup(GoodsGroup group) throws StorageException {
+    public synchronized void updateGroup(GoodsGroup group) throws StorageException {
         var gotGroup = getGroup(group.getName())
                 .orElseThrow(() -> new StorageException("Cannot update a non-existent group " + group.getName()));
         for(var good : gotGroup.getGoods()) {
@@ -229,17 +237,19 @@ public class SQLiteStorage implements AutoCloseableStorage {
 
     @Override
     public void deleteGroup(String name) throws StorageException {
-        try {
-            var gotGroup = getGroup(name)
-                    .orElseThrow(() -> new StorageException("Cannot update a non-existent group " + name));
-            for (var good : gotGroup.getGoods()) {
-                deleteGood(good.getName());
+        synchronized (deleteGroup) {
+            try {
+                var gotGroup = getGroup(name)
+                        .orElseThrow(() -> new StorageException("Cannot update a non-existent group " + name));
+                for (var good : gotGroup.getGoods()) {
+                    deleteGood(good.getName());
+                }
+                deleteGroup.setString(1, name);
+                var rowsDeleted = deleteGroup.executeUpdate();
+                assert(rowsDeleted == 1);
+            } catch (SQLException e) {
+                throw new RuntimeException(e);
             }
-            deleteGroup.setString(1, name);
-            var rowsDeleted = deleteGroup.executeUpdate();
-            assert(rowsDeleted == 1);
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
         }
     }
 

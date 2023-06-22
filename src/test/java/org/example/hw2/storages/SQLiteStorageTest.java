@@ -38,13 +38,23 @@ class SQLiteStorageTest {
     void updateGroupTest() {
         try {
             final var toCreate = new Group("updateGroupTest");
-            final var toUpdate = new Group("updatedGroup");
+            final var toUpdate = new Group(toCreate.getName());
+            final var updatedGood = new StandardGood("UpdatedMilk", 11, 2.9);
+            toCreate.addGood(new StandardGood("OldMilk", 132, 3.2));
+            toUpdate.addGood(updatedGood);
             storage.createGroup(toCreate);
+            assertEquals(toCreate.getName(), toUpdate.getName());
             assertTrue(storage.getGroup(toCreate.getName()).isPresent());
-            assertTrue(storage.getGroup(toUpdate.getName()).isEmpty());
+
             storage.updateGroup(toUpdate);
             assertTrue(storage.getGroup(toUpdate.getName()).isPresent());
-            assertTrue(storage.getGroup(toCreate.getName()).isEmpty());
+            final var newGroup = storage.getGroup(toUpdate.getName()).get();
+            final var iterator = newGroup.getGoods().iterator();
+            assertTrue(iterator.hasNext());
+            final var good = iterator.next();
+            assertEquals(good.getName(), updatedGood.getName());
+            assertEquals(good.getQuantity(), updatedGood.getQuantity());
+            assertEquals(good.getPrice(), updatedGood.getPrice(), 0.001);
         } catch (StorageException e) {
             fail(e.getMessage());
         }
@@ -123,9 +133,9 @@ class SQLiteStorageTest {
             assertTrue(storage.getGroup(toDelete.getName()).isEmpty());
             storage.addGoodToGroup(toDelete, group.getName());
             assertTrue(storage.getGroup(group.getName()).isPresent());
-            assertTrue(storage.getGroup(toDelete.getName()).isPresent());
+            assertTrue(storage.getGood(toDelete.getName()).isPresent());
 
-            storage.deleteGroup(toDelete.getName());
+            storage.deleteGood(toDelete.getName());
             assertTrue(storage.getGroup(group.getName()).isPresent());
             assertTrue(storage.getGroup(toDelete.getName()).isEmpty());
         } catch (StorageException e) {

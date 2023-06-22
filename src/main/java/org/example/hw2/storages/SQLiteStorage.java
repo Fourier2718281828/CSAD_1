@@ -225,17 +225,18 @@ public class SQLiteStorage implements AutoCloseableStorage {
                         good.getName() + " while updating the group " + gotGroup.getName());
             }
         }
-
-
     }
 
     @Override
     public void deleteGroup(String name) throws StorageException {
         try {
+            var gotGroup = getGroup(name)
+                    .orElseThrow(() -> new StorageException("Cannot update a non-existent group " + name));
+            for (var good : gotGroup.getGoods()) {
+                deleteGood(good.getName());
+            }
             deleteGroup.setString(1, name);
             var rowsDeleted = deleteGroup.executeUpdate();
-            if(rowsDeleted == 0)
-                throw new StorageException("Cannot delete a non-existent group: " + name);
             assert(rowsDeleted == 1);
         } catch (SQLException e) {
             throw new RuntimeException(e);

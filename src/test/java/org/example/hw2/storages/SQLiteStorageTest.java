@@ -83,20 +83,24 @@ class SQLiteStorageTest {
             final var toUpdate = new Group(toCreate.getName());
             final var updatedGood = new StandardGood("UpdatedMilk", 11, 2.9);
             toCreate.addGood(new StandardGood("OldMilk", 132, 3.2));
+            toCreate.addGood(new StandardGood("OldMilk2", 1323, 3.42));
             toUpdate.addGood(updatedGood);
             storage.createGroup(toCreate);
             assertEquals(toCreate.getName(), toUpdate.getName());
             assertTrue(storage.getGroup(toCreate.getName()).isPresent());
+            for(var good : toCreate.getGoods()) {
+                assertTrue(storage.getGood(good.getName()).isPresent());
+            }
+            assertTrue(storage.getGood(updatedGood.getName()).isEmpty());
 
             storage.updateGroup(toUpdate);
             assertTrue(storage.getGroup(toUpdate.getName()).isPresent());
             final var newGroup = storage.getGroup(toUpdate.getName()).get();
-            final var iterator = newGroup.getGoods().iterator();
-            assertTrue(iterator.hasNext());
-            final var good = iterator.next();
-            assertEquals(good.getName(), updatedGood.getName());
-            assertEquals(good.getQuantity(), updatedGood.getQuantity());
-            assertEquals(good.getPrice(), updatedGood.getPrice(), 0.001);
+            final var gotGoods = newGroup.getGoods();
+            assertTrue(equalSets(gotGoods, toUpdate.getGoods()));
+            for(var good : toCreate.getGoods()) {
+                assertTrue(storage.getGood(good.getName()).isEmpty());
+            }
         } catch (StorageException e) {
             fail(e.getMessage());
         }
@@ -107,10 +111,20 @@ class SQLiteStorageTest {
     void deleteGroupTest() {
         try {
             final var toDelete =  new Group("deleteGroupTest");
+            toDelete.addGood(new StandardGood("asd1", 12312,312.2));
+            toDelete.addGood(new StandardGood("asd2", 1232,312.72));
+            toDelete.addGood(new StandardGood("asd3", 1312,32.62));
             storage.createGroup(toDelete);
             assertTrue(storage.getGroup(toDelete.getName()).isPresent());
+            for(var good : toDelete.getGoods()) {
+                assertTrue(storage.getGood(good.getName()).isPresent());
+            }
+
             storage.deleteGroup(toDelete.getName());
             assertTrue(storage.getGroup(toDelete.getName()).isEmpty());
+            for(var good : toDelete.getGoods()) {
+                assertTrue(storage.getGood(good.getName()).isEmpty());
+            }
         } catch (StorageException e) {
             fail(e.getMessage());
         }

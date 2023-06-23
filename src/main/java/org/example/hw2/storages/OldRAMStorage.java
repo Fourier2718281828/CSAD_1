@@ -3,6 +3,7 @@ package org.example.hw2.storages;
 import org.example.exceptions.StorageException;
 import org.example.hw2.goods.Good;
 import org.example.hw2.goods.GoodsGroup;
+import org.example.hw4.criteria.Criterion;
 
 import java.util.Map;
 import java.util.Optional;
@@ -25,6 +26,11 @@ public class OldRAMStorage implements GroupedGoodStorage {
         if (removedGroup == null) {
             throw new StorageException("Group " + groupName + " does not exist.");
         }
+    }
+
+    @Override
+    public Iterable<GoodsGroup> getGroupsListByCriterion(Criterion criterion) {
+        return null;
     }
 
     @Override
@@ -85,7 +91,7 @@ public class OldRAMStorage implements GroupedGoodStorage {
     }
 
     @Override
-    public Iterable<Good> getGoodsListByCriteria() {
+    public Iterable<Good> getGoodsListByCriterion(Criterion criterion) {
         return null;
     }
 

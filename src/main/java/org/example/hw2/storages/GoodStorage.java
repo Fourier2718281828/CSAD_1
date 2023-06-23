@@ -2,6 +2,7 @@ package org.example.hw2.storages;
 
 import org.example.exceptions.StorageException;
 import org.example.hw2.goods.Good;
+import org.example.hw4.criteria.Criterion;
 
 import java.util.Optional;
 
@@ -10,5 +11,5 @@ public interface GoodStorage {
     Optional<Good> getGood(String goodName);
     void updateGood(Good good) throws StorageException;
     void deleteGood(String name) throws StorageException;
-    Iterable<Good> getGoodsListByCriteria();
+    Iterable<Good> getGoodsListByCriterion(Criterion criterion);
 }

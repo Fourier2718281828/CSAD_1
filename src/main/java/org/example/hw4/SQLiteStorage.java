@@ -5,6 +5,7 @@ import org.example.hw2.goods.Good;
 import org.example.hw2.goods.GoodsGroup;
 import org.example.hw2.goods.Group;
 import org.example.hw2.goods.StandardGood;
+import org.example.hw4.criteria.Criterion;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -169,7 +170,7 @@ public class SQLiteStorage implements DataBase {
     }
 
     @Override
-    public Iterable<Good> getGoodsListByCriteria() {
+    public Iterable<Good> getGoodsListByCriterion(Criterion criterion) {
         return null;
     }
 
@@ -256,6 +257,11 @@ public class SQLiteStorage implements DataBase {
                 throw new RuntimeException(e);
             }
         }
+    }
+
+    @Override
+    public Iterable<GoodsGroup> getGroupsListByCriterion(Criterion criterion) {
+        return null;
     }
 
     private Iterable<Good> getGoodsOfGroup(String groupName) {

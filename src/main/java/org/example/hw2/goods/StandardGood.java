@@ -1,5 +1,6 @@
 package org.example.hw2.goods;
 
+import java.util.Objects;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -49,6 +50,20 @@ public class StandardGood implements Good {
 
     private boolean validatePrice(double price) {
         return price >= 0.0;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        StandardGood that = (StandardGood) o;
+        return Objects.equals(name, that.name) && quantity.get() == that.quantity.get()
+                && Objects.equals(price.get(), that.price.get());
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(name, quantity.get(), price.get());
     }
 
     private final String name;

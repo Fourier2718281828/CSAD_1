@@ -1,6 +1,8 @@
 package org.example.hw2.storages;
 
 import org.example.exceptions.StorageException;
+import org.example.hw2.goods.Good;
+import org.example.hw2.goods.GoodsGroup;
 import org.example.hw2.goods.Group;
 import org.example.hw2.goods.StandardGood;
 import org.example.hw4.DataBase;
@@ -10,6 +12,9 @@ import org.junit.jupiter.api.*;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -30,15 +35,35 @@ class SQLiteStorageTest {
         }
     }
 
+    private static <T> Set<T> toSet(Iterable<T> iterable) {
+        var res = new HashSet<T>();
+        for(var item : iterable) {
+            res.add(item);
+        }
+        return res;
+    }
+
+    private static <T> boolean equalSets(Iterable<T> a, Iterable<T> b) {
+        return toSet(a).equals(toSet(b));
+    }
+
     @Test
     @DisplayName("Create and Get group")
     void createAndGetGroupTest() {
         try {
             final var group = new Group("createAndGetGroupTest");
+            final var goods = new ArrayList<Good>();
+            goods.add(new StandardGood("good1", 12, 31.2));
+            goods.add(new StandardGood("good2", 123, 313.98));
+            goods.add(new StandardGood("good3", 122, 3121.7));
+            goods.forEach(group::addGood);
             assertTrue(storage.getGroup(group.getName()).isEmpty());
             storage.createGroup(group);
             assertTrue(storage.getGroup(group.getName()).isPresent());
-
+            var gotGoods = storage.getGroup(group.getName())
+                    .map(GoodsGroup::getGoods);
+            assertTrue(gotGoods.isPresent());
+            assertTrue(equalSets(goods, gotGoods.get()));
             try {
                 storage.createGroup(new Group(group.getName()));
                 fail("Db does not throw an exception, when creating an already existent group");

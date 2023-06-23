@@ -14,7 +14,7 @@ public class Between<NumericType> implements Criterion {
 
     @Override
     public String getSQLRepresentation() {
-        return columnName + "BETWEEN " + min + " AND " + max;
+        return columnName + " BETWEEN " + min + " AND " + max;
     }
 
     @Override

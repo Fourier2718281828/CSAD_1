@@ -3,6 +3,8 @@ package org.example.hw2.storages;
 import org.example.exceptions.StorageException;
 import org.example.hw2.goods.Group;
 import org.example.hw2.goods.StandardGood;
+import org.example.hw4.DataBase;
+import org.example.hw4.SQLiteStorage;
 import org.junit.jupiter.api.*;
 
 import java.io.IOException;
@@ -176,5 +178,5 @@ class SQLiteStorageTest {
         }
     }
 
-    private static AutoCloseableStorage storage;
+    private static DataBase storage;
 }

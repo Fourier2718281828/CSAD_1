@@ -1,4 +1,4 @@
-package org.example.hw2.storages;
+package org.example.hw4;
 
 import org.example.exceptions.StorageException;
 import org.example.hw2.goods.Good;
@@ -12,7 +12,7 @@ import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.*;
 
-public class SQLiteStorage implements AutoCloseableStorage {
+public class SQLiteStorage implements DataBase {
     private enum CRUD {
         CREATE_GROUP, GET_GROUP, DELETE_GROUP,
         CREATE_GOOD, GET_GOOD, UPDATE_GOOD, DELETE_GOOD,
@@ -166,6 +166,11 @@ public class SQLiteStorage implements AutoCloseableStorage {
                 throw new RuntimeException(e);
             }
         }
+    }
+
+    @Override
+    public Iterable<Good> getGoodsListByCriteria() {
+        return null;
     }
 
     @Override

@@ -84,5 +84,10 @@ public class OldRAMStorage implements GroupedGoodStorage {
         throw new StorageException("Trying to delete a non-existent good: " + name);
     }
 
+    @Override
+    public Iterable<Good> getGoodsListByCriteria() {
+        return null;
+    }
+
     private final Map<String, GoodsGroup> groups;
 }

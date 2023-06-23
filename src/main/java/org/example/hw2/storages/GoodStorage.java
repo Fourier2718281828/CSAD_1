@@ -10,4 +10,5 @@ public interface GoodStorage {
     Optional<Good> getGood(String goodName);
     void updateGood(Good good) throws StorageException;
     void deleteGood(String name) throws StorageException;
+    Iterable<Good> getGoodsListByCriteria();
 }

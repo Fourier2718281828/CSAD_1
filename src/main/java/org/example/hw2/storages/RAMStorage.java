@@ -55,6 +55,11 @@ public class RAMStorage implements GroupedGoodStorage {
     }
 
     @Override
+    public Iterable<Good> getGoodsListByCriteria() {
+        return null;
+    }
+
+    @Override
     public void createGroup(GoodsGroup newGroup) throws StorageException {
         var gotGroup = getGroup(newGroup.getName());
         if(gotGroup.isPresent())

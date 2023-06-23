@@ -70,11 +70,12 @@ public class SQLiteStorage implements DataBase {
         executeStatement(sqlCreation);
     }
 
+    private static final class InstanceHolder {
+        private static final SQLiteStorage instance = new SQLiteStorage();
+    }
+
     public static SQLiteStorage getInstance() {
-        if(instance == null) {
-            instance = new SQLiteStorage();
-        }
-        return instance;
+        return InstanceHolder.instance;
     }
 
     private void executeStatement(String sql) throws SQLException {
@@ -100,8 +101,8 @@ public class SQLiteStorage implements DataBase {
     }
 
     @Override
-    public void addGoodToGroup(Good good, String groupName) throws StorageException {
-        synchronized (createGood) {
+    public synchronized void addGoodToGroup(Good good, String groupName) throws StorageException {
+        //synchronized (createGood) {
             try {
                 createGood.setString(1, good.getName());
                 createGood.setInt(2, good.getQuantity());
@@ -113,7 +114,7 @@ public class SQLiteStorage implements DataBase {
             } catch (SQLException e) {
                 throw new RuntimeException(e);
             }
-        }
+        //}
     }
 
     @Override
@@ -133,8 +134,8 @@ public class SQLiteStorage implements DataBase {
     }
 
     @Override
-    public void updateGood(Good good) throws StorageException {
-        synchronized (updateGood) {
+    public synchronized void updateGood(Good good) throws StorageException {
+        //synchronized (updateGood) {
             try {
                 updateGood.setInt(1, good.getQuantity());
                 updateGood.setDouble(2, good.getPrice());
@@ -147,12 +148,12 @@ public class SQLiteStorage implements DataBase {
             } catch (SQLException e) {
                 throw new RuntimeException(e);
             }
-        }
+       //}
     }
 
     @Override
-    public void deleteGood(String name) throws StorageException {
-        synchronized (deleteGood) {
+    public synchronized void deleteGood(String name) throws StorageException {
+        //synchronized (deleteGood) {
             try {
                 deleteGood.setString(1, name);
                 var rowsModified = deleteGood.executeUpdate();
@@ -163,7 +164,7 @@ public class SQLiteStorage implements DataBase {
             } catch (SQLException e) {
                 throw new RuntimeException(e);
             }
-        }
+        //}
     }
 
     @Override
@@ -177,7 +178,7 @@ public class SQLiteStorage implements DataBase {
                 WHERE\s""" + criterion.getSQLRepresentation();
         System.out.println("Filter query: " + sql);
         try (var statement = dbConnection.createStatement()){
-            ResultSet resultSet = null;
+            ResultSet resultSet;
             try {
                 resultSet = statement.executeQuery(sql);
             } catch (SQLException e) {
@@ -207,8 +208,8 @@ public class SQLiteStorage implements DataBase {
     }
 
     @Override
-    public void createGroup(GoodsGroup newGroup) throws StorageException {
-        synchronized (createGroup) {
+    public synchronized void createGroup(GoodsGroup newGroup) throws StorageException {
+        //synchronized (createGroup) {
             try {
                 createGroup.setString(1, newGroup.getName());
                 int rowsModified = createGroup.executeUpdate();
@@ -232,7 +233,7 @@ public class SQLiteStorage implements DataBase {
                 else
                     throw new RuntimeException(e);
             }
-        }
+        //}
     }
 
     @Override
@@ -274,8 +275,8 @@ public class SQLiteStorage implements DataBase {
     }
 
     @Override
-    public void deleteGroup(String name) throws StorageException {
-        synchronized (deleteGroup) {
+    public synchronized void deleteGroup(String name) throws StorageException {
+        //synchronized (deleteGroup) {
             try {
                 var gotGroup = getGroup(name)
                         .orElseThrow(() -> new StorageException("Cannot update a non-existent group " + name));
@@ -288,7 +289,7 @@ public class SQLiteStorage implements DataBase {
             } catch (SQLException e) {
                 throw new RuntimeException(e);
             }
-        }
+        //}
     }
 
     @Override
@@ -354,7 +355,6 @@ public class SQLiteStorage implements DataBase {
     private PreparedStatement updateGood;
     private PreparedStatement deleteGood;
     private PreparedStatement getGoodsOfGroup;
-    private static SQLiteStorage instance;
     private static final String dbFileName = "GroupedGoodStorage.sqlite";
     private static final Map<CRUD, String> sqlCodes = new TreeMap<>();
     private static final Set<String> columnNames = new TreeSet<>();

@@ -7,10 +7,7 @@ import org.example.hw2.goods.Group;
 import org.example.hw2.goods.StandardGood;
 import org.example.hw4.criteria.Criterion;
 
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.PreparedStatement;
-import java.sql.SQLException;
+import java.sql.*;
 import java.util.*;
 
 public class SQLiteStorage implements DataBase {
@@ -170,8 +167,43 @@ public class SQLiteStorage implements DataBase {
     }
 
     @Override
-    public Iterable<Good> getGoodsListByCriterion(Criterion criterion) {
-        return null;
+    public Iterable<Good> getGoodsListByCriterion(Criterion criterion) throws StorageException {
+        var columnNameCheck = hasInvalidColumnName(criterion);
+        if(columnNameCheck.isPresent())
+            throw new StorageException("Criterion contains an invalid column name: " + columnNameCheck.get());
+        final var sql = """
+                SELECT *
+                FROM 'Good'
+                WHERE\s""" + criterion.getSQLRepresentation();
+        System.out.println("Filter query: " + sql);
+        try (var statement = dbConnection.createStatement()){
+            ResultSet resultSet = null;
+            try {
+                resultSet = statement.executeQuery(sql);
+            } catch (SQLException e) {
+                throw new StorageException("Invalid sql code of criterion: " + criterion.getSQLRepresentation());
+            }
+            assert(resultSet != null);
+            var res = new ArrayList<Good>();
+            while(resultSet.next()) {
+                var goodName = resultSet.getString("good_name");
+                var goodQuantity = resultSet.getInt("quantity");
+                var goodPrice = resultSet.getDouble("price");
+                res.add(new StandardGood(goodName, goodQuantity, goodPrice));
+            }
+            return res;
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private Optional<String> hasInvalidColumnName(Criterion criterion) {
+        var criterionColumnNames = criterion.getAllUsedColumnNames();
+        for (var columnName : criterionColumnNames) {
+            if(!columnNames.contains(columnName))
+                return Optional.of(columnName);
+        }
+        return Optional.empty();
     }
 
     @Override
@@ -260,8 +292,36 @@ public class SQLiteStorage implements DataBase {
     }
 
     @Override
-    public Iterable<GoodsGroup> getGroupsListByCriterion(Criterion criterion) {
-        return null;
+    public Iterable<GoodsGroup> getGroupsListByCriterion(Criterion criterion) throws StorageException {
+        var columnNameCheck = hasInvalidColumnName(criterion);
+        if(columnNameCheck.isPresent())
+            throw new StorageException("Criterion contains an invalid column name: " + columnNameCheck.get());
+        final var sql = """
+                SELECT *
+                FROM 'GoodsGroup'
+                WHERE\s""" + criterion.getSQLRepresentation();
+        System.out.println("Filter query (group): " + sql);
+        try (var statement = dbConnection.createStatement()){
+            ResultSet resultSet;
+            try {
+                resultSet = statement.executeQuery(sql);
+            } catch (SQLException e) {
+                throw new StorageException("Invalid sql code of criterion: " + criterion.getSQLRepresentation());
+            }
+            assert(resultSet != null);
+            var res = new ArrayList<GoodsGroup>();
+            while(resultSet.next()) {
+                var groupName = resultSet.getString("group_name");
+                var group = new Group(groupName);
+                for(var good : getGoodsOfGroup(groupName)) {
+                    group.addGood(good);
+                }
+                res.add(group);
+            }
+            return res;
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     private Iterable<Good> getGoodsOfGroup(String groupName) {
@@ -297,6 +357,7 @@ public class SQLiteStorage implements DataBase {
     private static SQLiteStorage instance;
     private static final String dbFileName = "GroupedGoodStorage.sqlite";
     private static final Map<CRUD, String> sqlCodes = new TreeMap<>();
+    private static final Set<String> columnNames = new TreeSet<>();
 
     static {
         sqlCodes.put(CRUD.CREATE_GROUP, """
@@ -346,5 +407,13 @@ public class SQLiteStorage implements DataBase {
                                    WHERE group_name = ( ? )
                                  );
                 """);
+
+        columnNames.add("good_name");
+        columnNames.add("good_id");
+        columnNames.add("quantity");
+        columnNames.add("price");
+
+        columnNames.add("group_id");
+        columnNames.add("group_name");
     }
 }

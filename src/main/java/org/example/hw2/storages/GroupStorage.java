@@ -11,5 +11,5 @@ public interface GroupStorage {
     Optional<GoodsGroup> getGroup(String name);
     void updateGroup(GoodsGroup group) throws StorageException;
     void deleteGroup(String name) throws StorageException;
-    Iterable<GoodsGroup> getGroupsListByCriterion(Criterion criterion);
+    Iterable<GoodsGroup> getGroupsListByCriterion(Criterion criterion) throws StorageException;
 }

@@ -13,8 +13,8 @@ import org.example.hw2.goods.StandardGood;
 import org.example.hw2.operations.OperationParams;
 import org.example.hw2.operations.Operations;
 import org.example.hw2.storages.GroupedGoodStorage;
-import org.example.hw2.storages.Storage;
-import org.example.hw3.receivers.TCPReceiverFactory;
+import org.example.hw2.storages.RAMStorage;
+import org.example.hw3.receivers.UDPReceiverFactory;
 import org.example.packets.data.Packet;
 import org.example.packets.encoding.Codec;
 import org.example.utilities.ServerUtils;
@@ -30,20 +30,21 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.fail;
 
-class TCPClientTest {
+class UDPTest {
 
     @BeforeEach
     void setUp() {
 
         try {
             OperationFactoryInitializer.holdAllOperations();
-            storage = new Storage();
+            storage = new RAMStorage();
             storage.createGroup(new Group("Products"));
             storage.addGoodToGroup(new StandardGood("Milk", 11, 12), "Products");
             threadPool = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
-            server = new StoreServerTCP(ServerUtils.PORT, new TCPReceiverFactory(), storage);
+            server = new StoreServerUDP(ServerUtils.PORT, storage, new UDPReceiverFactory());
             threadPool.submit(server::start);
         } catch (IOException | HolderException | StorageException e) {
             fail(e.getMessage());
@@ -63,36 +64,25 @@ class TCPClientTest {
             final var packetFactory = new PacketFactory();
             final var codec = codecFactory.create();
             Client[] clients = new Client[] {
-                    new StoreClientTCP(codec, packetFactory),
-                    new StoreClientTCP(codec, packetFactory),
-                    new StoreClientTCP(codec, packetFactory),
-                    new StoreClientTCP(codec, packetFactory),
-                    new StoreClientTCP(codec, packetFactory),
-                    new StoreClientTCP(codec, packetFactory),
-                    new StoreClientTCP(codec, packetFactory),
-                    new StoreClientTCP(codec, packetFactory),
-                    new StoreClientTCP(codec, packetFactory),
-                    new StoreClientTCP(codec, packetFactory),
-                    new StoreClientTCP(codec, packetFactory),
-                    new StoreClientTCP(codec, packetFactory),
-                    new StoreClientTCP(codec, packetFactory),
-                    new StoreClientTCP(codec, packetFactory),
-                    new StoreClientTCP(codec, packetFactory),
-                    new StoreClientTCP(codec, packetFactory),
-                    new StoreClientTCP(codec, packetFactory),
-                    new StoreClientTCP(codec, packetFactory),
-                    new StoreClientTCP(codec, packetFactory),
-                    new StoreClientTCP(codec, packetFactory),
+                    new StoreClientUDP(codec, packetFactory),
+                    new StoreClientUDP(codec, packetFactory),
+                    new StoreClientUDP(codec, packetFactory),
+                    new StoreClientUDP(codec, packetFactory),
+                    new StoreClientUDP(codec, packetFactory),
+                    new StoreClientUDP(codec, packetFactory),
+                    new StoreClientUDP(codec, packetFactory),
+                    new StoreClientUDP(codec, packetFactory),
+                    new StoreClientUDP(codec, packetFactory),
             };
 
             final var results = new ConcurrentHashMap<Client, String>();
-            final var serverAdress = InetAddress.getLocalHost();
+            final var serverAddress = InetAddress.getLocalHost();
             final var goodName = "Milk";
             final var threadPoolClients = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
             for(var client : clients) {
                 threadPoolClients.submit(() -> {
                     try {
-                        var message = client.sendMessage(serverAdress, ServerUtils.PORT,
+                        var message = client.sendMessage(serverAddress, ServerUtils.PORT,
                                 Operations.GET_GOOD_QUANTITY, new OperationParams("", goodName, 0, 0));
                         results.put(client, message.message());
                     } catch (ClientException e) {
@@ -114,24 +104,26 @@ class TCPClientTest {
     }
 
     @Test
-    void failedConnectionTest() {
+    void lostMessageTest() {
         try {
-            final var goodName = "Milk";
             final var codecFactory = new PacketCodecFactory();
             final var packetFactory = new PacketFactory();
-            final Codec<Packet> codec = codecFactory.create();
-            final var client = new StoreClientTCP(codec, packetFactory);
-            ServerUtils.TCP_SERVER_WILL_BREAK_DOWN = true;
-            var message = client.sendMessage(ServerUtils.SERVER_IP, ServerUtils.PORT,
+            final Codec<Packet> codec;
+            codec = codecFactory.create();
+            Client client = new StoreClientUDP(codec, packetFactory);
+            final var goodName = "Milk";
+            ServerUtils.UDP_PACKAGE_WILL_BE_LOST = true;
+            var response = client.sendMessage(ServerUtils.SERVER_IP, ServerUtils.PORT,
                     Operations.GET_GOOD_QUANTITY, new OperationParams("", goodName, 0, 0));
             final var expectedQuantityOpt = storage.getGood(goodName).map(Good::getQuantity);
             if(expectedQuantityOpt.isEmpty()) fail("There's no " + goodName + " in storage!");
             final var expectedResult = "Ok. Result = " + expectedQuantityOpt.get();
-            assertEquals(expectedResult, message.message());
-            ServerUtils.TCP_SERVER_WILL_BREAK_DOWN = false;
-        } catch (CreationException | ClientException e) {
-            fail(e);
+            assertEquals(expectedResult, response.message());
+            ServerUtils.UDP_PACKAGE_WILL_BE_LOST = false;
+        } catch (ClientException | CreationException e) {
+            fail(e.getMessage());
         }
+
     }
 
     private ExecutorService threadPool;

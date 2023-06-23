@@ -3,14 +3,15 @@ package org.example.hw2.storages;
 import org.example.exceptions.StorageException;
 import org.example.hw2.goods.Good;
 import org.example.hw2.goods.GoodsGroup;
+import org.example.hw4.criteria.Criterion;
 
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 
-public class Storage2 implements GroupedGoodStorage {
+public class OldRAMStorage implements GroupedGoodStorage {
 
-    public Storage2() {
+    public OldRAMStorage() {
         this.groups = new ConcurrentHashMap<>();
     }
 
@@ -25,6 +26,11 @@ public class Storage2 implements GroupedGoodStorage {
         if (removedGroup == null) {
             throw new StorageException("Group " + groupName + " does not exist.");
         }
+    }
+
+    @Override
+    public Iterable<GoodsGroup> getGroupsListByCriterion(Criterion criterion) {
+        return null;
     }
 
     @Override
@@ -82,6 +88,11 @@ public class Storage2 implements GroupedGoodStorage {
             }
         }
         throw new StorageException("Trying to delete a non-existent good: " + name);
+    }
+
+    @Override
+    public Iterable<Good> getGoodsListByCriterion(Criterion criterion) {
+        return null;
     }
 
     private final Map<String, GoodsGroup> groups;

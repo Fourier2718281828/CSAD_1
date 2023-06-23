@@ -15,7 +15,6 @@ public class UDPReceiver implements Receiver {
     @Override
     public void receiveMessage() {
         var encrypted = Arrays.copyOfRange(packet.getData(), 0, packet.getLength());
-        System.out.println(encrypted.length + " : " + Arrays.toString(encrypted));
         decryptor.decrypt(encrypted);
     }
 

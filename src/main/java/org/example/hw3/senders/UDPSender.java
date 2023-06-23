@@ -1,6 +1,7 @@
 package org.example.hw3.senders;
 
 import org.example.hw2.basis.Sender;
+import org.example.utilities.ServerUtils;
 
 import java.io.IOException;
 import java.net.DatagramPacket;
@@ -16,8 +17,11 @@ public class UDPSender implements Sender {
     public void sendMessage(byte[] message, InetAddress address) {
 
         try {
+            if(ServerUtils.UDP_PACKAGE_WILL_BE_LOST) {
+                ServerUtils.UDP_PACKAGE_WILL_BE_LOST = false;
+                return;
+            }
             var response = new DatagramPacket(message, message.length, address, packet.getPort());
-            assert(socket.getInetAddress().equals(address));
             socket.send(response);
         } catch (IOException e) {
             throw new RuntimeException(e);

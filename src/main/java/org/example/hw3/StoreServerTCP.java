@@ -9,7 +9,7 @@ import org.example.hw2.basis.Receiver;
 import org.example.hw2.goods.Group;
 import org.example.hw2.goods.StandardGood;
 import org.example.hw2.storages.GroupedGoodStorage;
-import org.example.hw2.storages.Storage;
+import org.example.hw2.storages.RAMStorage;
 import org.example.hw3.receivers.TCPReceiverFactory;
 import org.example.utilities.ServerUtils;
 import org.example.utilities.ThreadUtils;
@@ -27,12 +27,14 @@ public class StoreServerTCP implements Server {
         this.receiverFactory = receiverFactory;
         this.threadPool = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
         this.storage = storage;
+        this.hasStarted = false;
     }
 
     @Override
     public void start() {
+        hasStarted = true;
         System.out.println("Server is running");
-        while (true) {
+        while (hasStarted()) {
             Socket clientSocket;
             try {
                 clientSocket = socket.accept();
@@ -57,14 +59,23 @@ public class StoreServerTCP implements Server {
 
     @Override
     public void close() throws IOException {
+        stop();
         socket.close();
         ThreadUtils.shutDownThreadPool(threadPool,
                 () -> System.out.println("Waiting for TCP-server's thread pool to shut down"));
     }
 
+    public void stop() {
+        hasStarted = false;
+    }
+
+    public boolean hasStarted() {
+        return hasStarted;
+    }
+
     public static void main(String[] args) throws HolderException, StorageException {
         OperationFactoryInitializer.holdAllOperations();
-        var storage = new Storage();
+        var storage = new RAMStorage();
         storage.createGroup(new Group("Products"));
         storage.addGoodToGroup(new StandardGood("Milk", 10, 10), "Products");
         try (var server = new StoreServerTCP(ServerUtils.PORT, new TCPReceiverFactory(), storage)) {
@@ -74,6 +85,7 @@ public class StoreServerTCP implements Server {
         }
     }
 
+    private volatile boolean hasStarted;
     private final ServerSocket socket;
     private final DoubleParamFactory<Receiver, Socket, GroupedGoodStorage> receiverFactory;
     private final ExecutorService threadPool;

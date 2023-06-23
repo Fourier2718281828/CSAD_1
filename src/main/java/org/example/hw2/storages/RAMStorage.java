@@ -3,14 +3,15 @@ package org.example.hw2.storages;
 import org.example.exceptions.StorageException;
 import org.example.hw2.goods.Good;
 import org.example.hw2.goods.GoodsGroup;
+import org.example.hw4.criteria.Criterion;
 
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.StreamSupport;
 
-public class Storage implements GroupedGoodStorage {
-    public Storage() {
+public class RAMStorage implements GroupedGoodStorage {
+    public RAMStorage() {
         this.groups = new ConcurrentHashMap<>();
     }
 
@@ -55,6 +56,11 @@ public class Storage implements GroupedGoodStorage {
     }
 
     @Override
+    public Iterable<Good> getGoodsListByCriterion(Criterion criterion) {
+        return null;
+    }
+
+    @Override
     public void createGroup(GoodsGroup newGroup) throws StorageException {
         var gotGroup = getGroup(newGroup.getName());
         if(gotGroup.isPresent())
@@ -81,6 +87,11 @@ public class Storage implements GroupedGoodStorage {
         if (removedGroup == null) {
             throw new StorageException("Group " + groupName + " does not exist.");
         }
+    }
+
+    @Override
+    public Iterable<GoodsGroup> getGroupsListByCriterion(Criterion criterion) {
+        return null;
     }
 
     private final Map<String, GoodsGroup> groups;

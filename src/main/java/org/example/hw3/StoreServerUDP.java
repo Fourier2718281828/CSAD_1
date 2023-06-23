@@ -9,7 +9,7 @@ import org.example.hw2.basis.Receiver;
 import org.example.hw2.goods.Group;
 import org.example.hw2.goods.StandardGood;
 import org.example.hw2.storages.GroupedGoodStorage;
-import org.example.hw2.storages.Storage;
+import org.example.hw2.storages.RAMStorage;
 import org.example.hw3.receivers.UDPReceiverFactory;
 import org.example.utilities.ServerUtils;
 import org.example.utilities.ThreadUtils;
@@ -28,19 +28,19 @@ public class StoreServerUDP implements Server {
         this.storage = storage;
         this.threadPool = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
         this.receiverFactory = receiverFactory;
+        this.hasStarted = false;
     }
     @Override
     public void start() {
-        while(true) {
+        hasStarted = true;
+        while(hasStarted()) {
             try {
                 var buffer = new byte[ServerUtils.MAX_PACKET_SIZE];
                 var packet = new DatagramPacket(buffer, buffer.length);
                 socket.receive(packet);
                 var receiver = receiverFactory.create(socket, packet, storage);
                 threadPool.submit(receiver::receiveMessage);
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            } catch (CreationException e) {
+            } catch (IOException | CreationException e) {
                 throw new RuntimeException(e);
             }
         }
@@ -48,25 +48,33 @@ public class StoreServerUDP implements Server {
 
     @Override
     public void close() throws Exception {
+        stop();
         socket.close();
         ThreadUtils.shutDownThreadPool(threadPool,
                 () -> System.out.println("Waiting for TCP-server's thread pool to shut down"));
     }
 
+    public void stop() {
+        hasStarted = false;
+    }
+
+    public boolean hasStarted() {
+        return hasStarted;
+    }
+
     public static void main(String[] args) throws HolderException, StorageException {
         OperationFactoryInitializer.holdAllOperations();
-        var storage = new Storage();
+        var storage = new RAMStorage();
         storage.createGroup(new Group("Products"));
         storage.addGoodToGroup(new StandardGood("Milk", 10, 10), "Products");
         try (var server = new StoreServerUDP(ServerUtils.PORT, storage, new UDPReceiverFactory())) {
             server.start();
-        } catch (IOException e) {
-            throw new RuntimeException(e);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
     }
 
+    private volatile boolean hasStarted;
     private final DatagramSocket socket;
     private final GroupedGoodStorage storage;
     private final ExecutorService threadPool;

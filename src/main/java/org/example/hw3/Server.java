@@ -1,6 +1,6 @@
 package org.example.hw3;
 
-public interface Server extends AutoCloseable {
+public interface Server {
     void start();
     void stop();
 }

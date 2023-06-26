@@ -47,32 +47,26 @@ public class StoreServerUDP implements Server {
     }
 
     @Override
-    public void close() throws Exception {
-        stop();
+    public void stop() {
+        hasStarted = false;
         socket.close();
         ThreadUtils.shutDownThreadPool(threadPool,
                 () -> System.out.println("Waiting for TCP-server's thread pool to shut down"));
-    }
 
-    @Override
-    public void stop() {
-        hasStarted = false;
     }
 
     public boolean hasStarted() {
         return hasStarted;
     }
 
-    public static void main(String[] args) throws HolderException, StorageException {
+    public static void main(String[] args) throws HolderException, StorageException, SocketException {
         OperationFactoryInitializer.holdAllOperations();
         var storage = new RAMStorage();
         storage.createGroup(new Group("Products"));
         storage.addGoodToGroup(new StandardGood("Milk", 10, 10), "Products");
-        try (var server = new StoreServerUDP(ServerUtils.PORT, storage, new UDPReceiverFactory())) {
-            server.start();
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
+        var server = new StoreServerUDP(ServerUtils.PORT, storage, new UDPReceiverFactory());
+        server.start();
+        server.stop();
     }
 
     private volatile boolean hasStarted;

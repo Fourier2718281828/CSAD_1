@@ -58,32 +58,28 @@ public class StoreServerTCP implements Server {
     }
 
     @Override
-    public void close() throws IOException {
-        stop();
-        socket.close();
-        ThreadUtils.shutDownThreadPool(threadPool,
-                () -> System.out.println("Waiting for TCP-server's thread pool to shut down"));
-    }
-
-    @Override
     public void stop() {
-        hasStarted = false;
+        try {
+            hasStarted = false;
+            socket.close();
+            ThreadUtils.shutDownThreadPool(threadPool,
+                    () -> System.out.println("Waiting for TCP-server's thread pool to shut down"));
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     public boolean hasStarted() {
         return hasStarted;
     }
 
-    public static void main(String[] args) throws HolderException, StorageException {
+    public static void main(String[] args) throws HolderException, StorageException, IOException {
         OperationFactoryInitializer.holdAllOperations();
         var storage = new RAMStorage();
         storage.createGroup(new Group("Products"));
         storage.addGoodToGroup(new StandardGood("Milk", 10, 10), "Products");
-        try (var server = new StoreServerTCP(ServerUtils.PORT, new TCPReceiverFactory(), storage)) {
-            server.start();
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+        var server = new StoreServerTCP(ServerUtils.PORT, new TCPReceiverFactory(), storage);
+        server.start();
     }
 
     private volatile boolean hasStarted;

@@ -14,7 +14,7 @@ public class StandardHttpServerFactory implements DoubleParamFactory<Server, Gro
     @Override
     public Server create(GroupedGoodStorage storage, InetSocketAddress port) throws CreationException {
         try {
-            var server = new StandardHttpServer(port, 0);
+            var server = new StandardHttpServer(port, 10);
             server.addEndpoint("/login", new LoginContext());
             server.addEndpoint("/api", new StorageContext());
             return server;

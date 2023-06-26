@@ -52,9 +52,9 @@ class UDPTest {
     }
 
     @AfterEach
-    void tearDown() throws Exception {
+    void tearDown() {
         threadPool.shutdown();
-        server.close();
+        server.stop();
     }
 
     @Test

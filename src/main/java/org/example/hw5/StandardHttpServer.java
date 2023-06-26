@@ -26,12 +26,8 @@ public class StandardHttpServer implements EndpointedServer {
     }
 
     @Override
-    public void close() throws Exception {
-        stop();
-    }
-
-    @Override
     public void addEndpoint(String url, HttpHandler handler, Authenticator authenticator) {
+        System.out.println("Added endpoint: " + url);
         final var context = server.createContext(url, handler);
         context.setAuthenticator(authenticator);
     }

@@ -3,8 +3,8 @@ package org.example.hw5.contexts;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import org.example.exceptions.HolderException;
-import org.example.hw5.DispatchingHttpHandler;
-import org.example.hw5.EndpointDispatcher;
+import org.example.hw5.contexts.dispatching.DispatchingHttpHandler;
+import org.example.hw5.contexts.dispatching.EndpointDispatcher;
 
 import java.io.IOException;
 

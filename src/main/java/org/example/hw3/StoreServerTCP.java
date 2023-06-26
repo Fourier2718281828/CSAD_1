@@ -65,6 +65,7 @@ public class StoreServerTCP implements Server {
                 () -> System.out.println("Waiting for TCP-server's thread pool to shut down"));
     }
 
+    @Override
     public void stop() {
         hasStarted = false;
     }

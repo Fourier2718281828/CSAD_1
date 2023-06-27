@@ -1,6 +1,6 @@
 package org.example.hw2.operations;
 
-import org.example.exceptions.StorageException;
+import org.example.exceptions.storage.StorageException;
 import org.example.hw2.goods.StandardGood;
 import org.example.hw2.storages.GroupedGoodStorage;
 
@@ -10,6 +10,7 @@ public class SubtractGoodQuantityOperation implements Operation{
     public SubtractGoodQuantityOperation(GroupedGoodStorage storage) {
         this.storage = storage;
         this.result = null;
+        this.params = null;
     }
 
     @Override
@@ -31,6 +32,12 @@ public class SubtractGoodQuantityOperation implements Operation{
         return Optional.ofNullable(result);
     }
 
-    private Integer result;
+    @Override
+    public Optional<OperationParams> getParamsResult() {
+        return Optional.ofNullable(params);
+    }
+
+    private final OperationParams params;
+    private final Integer result;
     private final GroupedGoodStorage storage;
 }

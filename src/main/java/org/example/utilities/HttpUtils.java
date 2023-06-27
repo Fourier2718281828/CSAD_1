@@ -1,5 +1,6 @@
 package org.example.utilities;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sun.net.httpserver.HttpExchange;
@@ -9,6 +10,7 @@ import java.io.IOException;
 import java.util.InputMismatchException;
 import java.util.Map;
 import java.util.Optional;
+import java.util.TreeMap;
 
 public class HttpUtils {
     public static OperationParams fromJSON(byte[] bytes) throws IOException {
@@ -111,11 +113,34 @@ public class HttpUtils {
                 requestURI.getQuery().isEmpty();
     }
 
-    public static void sendResponse(HttpExchange exchange, int code, OperationParams body) {
-
+    public static Map<String, String> paramsToMap(OperationParams params) {
+        return new TreeMap<>() {{
+                put("goodName", params.getGoodName());
+                put("groupName", params.getGroupName());
+                put("quantity", String.valueOf(params.getQuantity()));
+                put("price", String.valueOf(params.getPrice()));
+            }};
     }
 
-    public static void sendResponse(HttpExchange exchange, int code) {
+    public static void sendResponse(HttpExchange exchange, int code, OperationParams body) throws JsonProcessingException {
+        byte[] bodyBytes;
+        if(body != null) {
+            var objectMapper = new ObjectMapper();
+            var paramsMap = paramsToMap(body);
+            bodyBytes = objectMapper.writeValueAsBytes(paramsMap);
+        } else {
+            bodyBytes = new byte[0];
+        }
+
+        try (var responseBody = exchange.getResponseBody()){
+            exchange.sendResponseHeaders(code, bodyBytes.length);
+            responseBody.write(bodyBytes);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public static void sendResponse(HttpExchange exchange, int code) throws JsonProcessingException {
         sendResponse(exchange, code, null);
     }
 }

@@ -5,6 +5,7 @@ import com.sun.net.httpserver.HttpHandler;
 import org.example.exceptions.HolderException;
 import org.example.hw5.contexts.dispatching.DispatchingHttpHandler;
 import org.example.hw5.contexts.dispatching.EndpointDispatcher;
+import org.example.utilities.HttpUtils;
 
 import java.io.IOException;
 import java.util.function.Consumer;
@@ -25,7 +26,8 @@ public class LoginContext implements HttpHandler {
     }
 
     private void login(HttpExchange exchange) {
-        System.out.println(exchange.getRequestMethod() + '/' + exchange.getRequestURI().getPath() + ": login");
+        System.out.println(exchange.getRequestMethod() + '#' + exchange.getRequestURI().getPath() + ": login");
+        HttpUtils.sendResponse(exchange, 200);
     }
 
     @Override

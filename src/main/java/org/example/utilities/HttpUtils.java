@@ -1,6 +1,5 @@
 package org.example.utilities;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sun.net.httpserver.HttpExchange;
@@ -122,25 +121,31 @@ public class HttpUtils {
             }};
     }
 
-    public static void sendResponse(HttpExchange exchange, int code, OperationParams body) throws JsonProcessingException {
-        byte[] bodyBytes;
-        if(body != null) {
-            var objectMapper = new ObjectMapper();
-            var paramsMap = paramsToMap(body);
-            bodyBytes = objectMapper.writeValueAsBytes(paramsMap);
-        } else {
-            bodyBytes = new byte[0];
-        }
+    public static void sendResponse(HttpExchange exchange, int code, String message) {
 
+    }
+
+    public static void sendResponse(HttpExchange exchange, int code, OperationParams body) {
+        sendResponseObject(exchange, code, paramsToMap(body));
+    }
+
+    public static void sendResponse(HttpExchange exchange, int code) {
+        sendResponseObject(exchange, code, null);
+    }
+
+    public static void sendResponseObject(HttpExchange exchange, int code, Object obj) {
         try (var responseBody = exchange.getResponseBody()){
-            exchange.sendResponseHeaders(code, bodyBytes.length);
-            responseBody.write(bodyBytes);
+            byte[] bytes;
+            if(obj != null) {
+                var objectMapper = new ObjectMapper();
+                bytes = objectMapper.writeValueAsBytes(obj);
+            } else {
+                bytes = new byte[0];
+            }
+            exchange.sendResponseHeaders(code, bytes.length);
+            responseBody.write(bytes);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-    }
-
-    public static void sendResponse(HttpExchange exchange, int code) throws JsonProcessingException {
-        sendResponse(exchange, code, null);
     }
 }

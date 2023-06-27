@@ -1,6 +1,11 @@
 package org.example.hw2.operations;
 
 public class OperationParams {
+    /**
+     * for Jackson
+     */
+    public OperationParams() {}
+
     public OperationParams(String toParse) {
         var split = toParse.split(" ");
         if(split.length != 4)

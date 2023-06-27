@@ -7,15 +7,16 @@ import org.example.hw5.contexts.dispatching.DispatchingHttpHandler;
 import org.example.hw5.contexts.dispatching.EndpointDispatcher;
 
 import java.io.IOException;
+import java.util.function.Consumer;
 
 public class LoginContext implements HttpHandler {
     public LoginContext() {
         this.handler = new DispatchingHttpHandler(getBoundDispatcher());
     }
 
-    private EndpointDispatcher getBoundDispatcher() {
+    private EndpointDispatcher<Consumer<HttpExchange>> getBoundDispatcher() {
         try {
-            var dispatcher = new EndpointDispatcher();
+            var dispatcher = new EndpointDispatcher<Consumer<HttpExchange>>();
             dispatcher.addEndpoint("POST", "/login", this::login);
             return dispatcher;
         } catch (HolderException e) {

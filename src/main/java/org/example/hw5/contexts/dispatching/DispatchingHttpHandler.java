@@ -4,9 +4,10 @@ import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 
 import java.io.IOException;
+import java.util.function.Consumer;
 
 public class DispatchingHttpHandler implements HttpHandler {
-    public DispatchingHttpHandler(EndpointDispatcher dispatcher) {
+    public DispatchingHttpHandler(EndpointDispatcher<Consumer<HttpExchange>> dispatcher) {
         this.dispatcher = dispatcher;
     }
 
@@ -19,5 +20,5 @@ public class DispatchingHttpHandler implements HttpHandler {
         processor.accept(exchange);
     }
 
-    private final EndpointDispatcher dispatcher;
+    private final EndpointDispatcher<Consumer<HttpExchange>> dispatcher;
 }

@@ -2,7 +2,7 @@ package org.example.hw3;
 
 import org.example.exceptions.CreationException;
 import org.example.exceptions.HolderException;
-import org.example.exceptions.StorageException;
+import org.example.exceptions.storage.StorageException;
 import org.example.factories.interfaces.DoubleParamFactory;
 import org.example.factories.operations.OperationFactoryInitializer;
 import org.example.hw2.basis.Receiver;

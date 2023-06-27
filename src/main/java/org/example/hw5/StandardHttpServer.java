@@ -7,7 +7,7 @@ import com.sun.net.httpserver.Authenticator;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 
-public class StandardHttpServer implements EndpointedServer {
+public class StandardHttpServer implements ContexedServer {
     public StandardHttpServer(InetSocketAddress port, int backLog) throws IOException {
         this.server = HttpServer.create();
         server.bind(port, backLog);
@@ -26,7 +26,7 @@ public class StandardHttpServer implements EndpointedServer {
     }
 
     @Override
-    public void addEndpoint(String url, HttpHandler handler, Authenticator authenticator) {
+    public void addContext(String url, HttpHandler handler, Authenticator authenticator) {
         System.out.println("Added endpoint: " + url);
         final var context = server.createContext(url, handler);
         context.setAuthenticator(authenticator);

@@ -2,7 +2,7 @@ package org.example.hw2.basis.impl;
 
 import org.example.exceptions.CodecException;
 import org.example.exceptions.CreationException;
-import org.example.exceptions.StorageException;
+import org.example.exceptions.storage.StorageException;
 import org.example.factories.interfaces.SingleParamFactory;
 import org.example.hw2.basis.Processor;
 import org.example.hw2.basis.Sender;

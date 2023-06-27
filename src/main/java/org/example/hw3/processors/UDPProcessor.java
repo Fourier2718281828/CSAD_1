@@ -2,7 +2,7 @@ package org.example.hw3.processors;
 
 import org.example.exceptions.CodecException;
 import org.example.exceptions.CreationException;
-import org.example.exceptions.StorageException;
+import org.example.exceptions.storage.StorageException;
 import org.example.factories.interfaces.SingleParamFactory;
 import org.example.hw2.basis.Processor;
 import org.example.hw2.basis.Sender;
@@ -30,7 +30,7 @@ public class UDPProcessor implements Processor {
             EncryptionProvider<Packet> encryptor,
             Sender sender,
             SingleParamFactory<Operation, Operations> operationFactory) {
-        this.socket = socket;
+//        this.socket = socket;
         this.encryptor = encryptor;
         this.sender = sender;
         this.operationFactory = operationFactory;
@@ -74,7 +74,7 @@ public class UDPProcessor implements Processor {
         }
     }
 
-    private final DatagramSocket socket;
+//    private final DatagramSocket socket;
     private final EncryptionProvider<Packet> encryptor;
     private final Sender sender;
     private final SingleParamFactory<Operation, Operations> operationFactory;

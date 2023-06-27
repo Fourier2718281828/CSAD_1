@@ -2,50 +2,59 @@ package org.example.hw5.contexts;
 
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
+import org.example.exceptions.CreationException;
 import org.example.exceptions.HolderException;
-import org.example.hw5.contexts.dispatching.DispatchingHttpHandler;
+import org.example.exceptions.storage.DataConflictException;
+import org.example.exceptions.storage.NotFoundException;
+import org.example.exceptions.storage.StorageException;
+import org.example.factories.interfaces.SingleParamFactory;
+import org.example.hw2.operations.Operation;
+import org.example.hw2.operations.OperationParams;
+import org.example.hw2.operations.Operations;
 import org.example.hw5.contexts.dispatching.EndpointDispatcher;
+import org.example.utilities.HttpUtils;
 
 import java.io.IOException;
 
 public class StorageContext implements HttpHandler {
-    public StorageContext() {
-        this.handler = new DispatchingHttpHandler(getBoundDispatcher());
-    }
-
-    private EndpointDispatcher getBoundDispatcher() {
-        try {
-            var dispatcher = new EndpointDispatcher();
-            dispatcher.addEndpoint("GET",     "/api/good/{id}", this::getGood);
-            dispatcher.addEndpoint("PUT",     "/api/good/{id}", this::createGood);
-            dispatcher.addEndpoint("POST",    "/api/good/{id}", this::updateGood);
-            dispatcher.addEndpoint("DELETE",  "/api/good/{id}", this::deleteGood);
-            return dispatcher;
-        } catch (HolderException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    private void getGood(HttpExchange exchange) {
-        System.out.println(exchange.getRequestMethod() + '/' + exchange.getRequestURI().getPath() + ": getGood");
-    }
-
-    private void createGood(HttpExchange exchange) {
-        System.out.println(exchange.getRequestMethod() + '/' + exchange.getRequestURI().getPath() + ": createGood");
-    }
-
-    private void updateGood(HttpExchange exchange) {
-        System.out.println(exchange.getRequestMethod() + '/' + exchange.getRequestURI().getPath() + ": updateGood");
-    }
-
-    private void deleteGood(HttpExchange exchange) {
-        System.out.println(exchange.getRequestMethod() + '/' + exchange.getRequestURI().getPath() + ": deleteGood");
+    public StorageContext(SingleParamFactory<Operation, Operations> operationFactory) {
+        this.operationFactory = operationFactory;
+        this.operationDispatcher = new EndpointDispatcher<>();
     }
 
     @Override
     public void handle(HttpExchange exchange) throws IOException {
-        handler.handle(exchange);
+        try {
+            final var requestMethod = exchange.getRequestMethod();
+            final var uri = exchange.getRequestURI().getPath();
+            final var operationType = operationDispatcher.dispatch(requestMethod, uri)
+                    .orElseThrow(() -> new IOException("Non-handled endpoint: " + requestMethod + ": " + uri));
+
+            final var operation = operationFactory.create(operationType);
+            OperationParams params = HttpUtils.fromBody(exchange)
+                    .or(() -> HttpUtils.extractParamsFromQuery(exchange))
+                    .orElse(new OperationParams());
+            operation.execute(params);
+
+            final var result = operation.getParamsResult();
+            final var toBody = result.orElse(null);
+            final var code = result.isEmpty() ? 204
+                    : requestMethod.equalsIgnoreCase("put") ? 201
+                    : 200;
+            HttpUtils.sendResponse(exchange, code, toBody);
+        } catch (DataConflictException e) {
+            HttpUtils.sendResponse(exchange, 409);
+        } catch (NotFoundException e) {
+            HttpUtils.sendResponse(exchange, 404);
+        } catch (CreationException | StorageException e) {
+            throw new RuntimeException(e);
+        }
     }
 
-    private final HttpHandler handler;
+    public void mapEndpointToOperation(String requestMethod, String uri, Operations operationType) throws HolderException {
+        operationDispatcher.addEndpoint(requestMethod, uri, operationType);
+    }
+
+    private final EndpointDispatcher<Operations> operationDispatcher;
+    private final SingleParamFactory<Operation, Operations> operationFactory;
 }

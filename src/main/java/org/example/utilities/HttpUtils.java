@@ -110,4 +110,12 @@ public class HttpUtils {
         return requestURI == null ||
                 requestURI.getQuery().isEmpty();
     }
+
+    public static void sendResponse(HttpExchange exchange, int code, OperationParams body) {
+
+    }
+
+    public static void sendResponse(HttpExchange exchange, int code) {
+        sendResponse(exchange, code, null);
+    }
 }

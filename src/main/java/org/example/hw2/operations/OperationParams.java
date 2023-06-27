@@ -4,7 +4,9 @@ public class OperationParams {
     /**
      * for Jackson
      */
-    public OperationParams() {}
+    public OperationParams() {
+        this("", "", 0, 0.0);
+    }
 
     public OperationParams(String toParse) {
         var split = toParse.split(" ");

@@ -1,6 +1,6 @@
 package org.example.hw2.storages;
 
-import org.example.exceptions.StorageException;
+import org.example.exceptions.storage.StorageException;
 import org.example.hw2.goods.Good;
 import org.example.hw2.goods.GoodsGroup;
 import org.example.hw4.criteria.Criterion;

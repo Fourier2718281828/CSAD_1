@@ -45,7 +45,11 @@ public class HttpUtils {
             var success = bodyStream.read(input);
             if (success == -1)
                 throw new IOException("Empty body input.");
-            return Optional.of(fromJSON(input));
+            var params = fromJSON(input);
+            if(!HttpUtils.hasEmptyQueryParams(exchange))
+                params.setGoodName(HttpUtils.extractQueryParam(exchange, "id").orElseThrow());
+            return Optional.of(params);
+            //return Optional.of(fromJSON(input));
         }
     }
 
@@ -75,7 +79,7 @@ public class HttpUtils {
     public static Optional<OperationParams> extractParamsFromQuery(String query) {
         String groupName = extractQueryParam(query, "groupName")
                 .orElse("");
-        String goodName = extractQueryParam(query, "goodName")
+        String goodName = extractQueryParam(query, "id")
                 .orElse("");
         int quantity;
         double price;

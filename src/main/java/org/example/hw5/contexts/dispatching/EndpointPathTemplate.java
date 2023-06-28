@@ -15,7 +15,6 @@ public class EndpointPathTemplate {
     public EndpointPathTemplate(String method, URI uri) {
         this.method = method;
         this.path = ridOfTrailingSlash(uri.getPath());
-        System.out.println("URI.getPath() = " + uri.getPath());
         this.queryParams = parseQueryParamsFromURI(uri);
     }
 

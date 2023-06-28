@@ -27,7 +27,6 @@ public class StorageContext implements HttpHandler {
         try {
             final var requestMethod = exchange.getRequestMethod();
             final var uri = exchange.getRequestURI();
-            System.out.println(uri);
             final var operationType = operationDispatcher.dispatch(requestMethod, uri)
                     .orElseThrow(() -> new NotFoundException("Non-handled endpoint: " + requestMethod + ": " + uri));
 
@@ -36,6 +35,7 @@ public class StorageContext implements HttpHandler {
                     .or(() -> HttpUtils.extractParamsFromQuery(exchange))
                     .orElse(new OperationParams());
             operation.execute(params);
+            System.out.println("Request to " + uri + " with params: " + params);
 
             final var result = operation.getParamsResult();
             final var toBody = result.orElse(null);

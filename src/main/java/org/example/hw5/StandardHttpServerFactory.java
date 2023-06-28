@@ -7,6 +7,7 @@ import org.example.factories.operations.OperationFactory;
 import org.example.hw2.operations.Operations;
 import org.example.hw2.storages.GroupedGoodStorage;
 import org.example.hw3.Server;
+import org.example.hw5.authenticators.JWTAuthenticator;
 import org.example.hw5.contexts.LoginContext;
 import org.example.hw5.contexts.StorageContext;
 
@@ -24,7 +25,7 @@ public class StandardHttpServerFactory implements DoubleParamFactory<Server, Gro
             storageContext.mapEndpointToOperation("POST", "/api/good/{id}", Operations.UPDATE_GOOD);
             storageContext.mapEndpointToOperation("DELETE", "/api/good/{id}", Operations.DELETE_GOOD);
             server.addContext("/login", new LoginContext());
-            server.addContext("/api", storageContext);
+            server.addContext("/api", storageContext, new JWTAuthenticator());
             return server;
         } catch (IOException | HolderException e) {
             throw new CreationException(e.getMessage());

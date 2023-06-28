@@ -1,4 +1,4 @@
-package org.example.utilities;
+package org.example.utilities.http;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -11,7 +11,17 @@ import java.util.Map;
 import java.util.Optional;
 
 public class HttpUtils {
-    public static OperationParams fromJSON(byte[] bytes) throws IOException {
+    public static Optional<Credentials> credentialsFromBody(HttpExchange exchange) {
+        try(var body = exchange.getRequestBody()) {
+            var objectMapper = new ObjectMapper();
+            return Optional.of(objectMapper.readValue(body, Credentials.class));
+        } catch (IOException e) {
+            return Optional.empty();
+        }
+
+    }
+
+    public static OperationParams operationParamsFromJSON(byte[] bytes) throws IOException {
         ObjectMapper objectMapper = new ObjectMapper();
         var mapRepresentation = objectMapper.readValue(bytes, new TypeReference<Map<String, String>>() {});
 
@@ -37,7 +47,7 @@ public class HttpUtils {
         return new OperationParams(groupName, goodName, quantity, price);
     }
 
-    public static Optional<OperationParams> fromBody(HttpExchange exchange) throws IOException {
+    public static Optional<OperationParams> operationParamsFromBody(HttpExchange exchange) throws IOException {
         if(hasEmptyBody(exchange))
             return Optional.empty();
         try(var bodyStream = exchange.getRequestBody()) {
@@ -45,7 +55,7 @@ public class HttpUtils {
             var success = bodyStream.read(input);
             if (success == -1)
                 throw new IOException("Empty body input.");
-            var params = fromJSON(input);
+            var params = operationParamsFromJSON(input);
             if(!HttpUtils.hasEmptyQueryParams(exchange))
                 params.setGoodName(HttpUtils.extractQueryParam(exchange, "id").orElseThrow());
             return Optional.of(params);
@@ -127,6 +137,7 @@ public class HttpUtils {
     }
 
     public static void sendResponseObject(HttpExchange exchange, int code, Object obj) {
+        exchange.getResponseHeaders().add("Content-Type", "application/json");
         try (var responseBody = exchange.getResponseBody()){
             byte[] bytes;
             if(obj != null) {

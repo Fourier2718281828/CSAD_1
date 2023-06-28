@@ -12,7 +12,7 @@ import org.example.hw2.operations.Operation;
 import org.example.hw2.operations.OperationParams;
 import org.example.hw2.operations.Operations;
 import org.example.hw5.contexts.dispatching.EndpointDispatcher;
-import org.example.utilities.HttpUtils;
+import org.example.utilities.http.HttpUtils;
 
 import java.io.IOException;
 
@@ -31,7 +31,7 @@ public class StorageContext implements HttpHandler {
                     .orElseThrow(() -> new NotFoundException("Non-handled endpoint: " + requestMethod + ": " + uri));
 
             final var operation = operationFactory.create(operationType);
-            OperationParams params = HttpUtils.fromBody(exchange)
+            OperationParams params = HttpUtils.operationParamsFromBody(exchange)
                     .or(() -> HttpUtils.extractParamsFromQuery(exchange))
                     .orElse(new OperationParams());
             System.out.println("Request to " + uri + " with params: " + params);

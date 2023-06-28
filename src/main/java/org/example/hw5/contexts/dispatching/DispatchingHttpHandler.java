@@ -2,7 +2,7 @@ package org.example.hw5.contexts.dispatching;
 
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
-import org.example.utilities.HttpUtils;
+import org.example.utilities.http.HttpUtils;
 
 import java.util.function.Consumer;
 

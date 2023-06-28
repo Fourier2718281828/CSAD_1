@@ -1,5 +1,6 @@
 package org.example.utilities;
 
+import org.example.utilities.http.HttpUtils;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
@@ -31,19 +32,19 @@ class HttpUtilsTest {
                 }
                 """;
         try {
-            var params1 = HttpUtils.fromJSON(ex1.getBytes());
+            var params1 = HttpUtils.operationParamsFromJSON(ex1.getBytes());
             assertEquals(params1.getGoodName(), "good1");
             assertEquals(params1.getGroupName(), "group1");
             assertEquals(params1.getQuantity(), 10);
             assertEquals(params1.getPrice(), 11.23);
 
-            var params2 = HttpUtils.fromJSON(ex2.getBytes());
+            var params2 = HttpUtils.operationParamsFromJSON(ex2.getBytes());
             assertEquals(params2.getGoodName(), "good2");
             assertEquals(params2.getGroupName(), "");
             assertEquals(params2.getQuantity(), 0);
             assertEquals(params2.getPrice(), 0.0);
 
-            var params3 = HttpUtils.fromJSON(ex3.getBytes());
+            var params3 = HttpUtils.operationParamsFromJSON(ex3.getBytes());
             assertEquals(params3.getGoodName(), "good3");
             assertEquals(params3.getGroupName(), "");
             assertEquals(params3.getQuantity(), 32);

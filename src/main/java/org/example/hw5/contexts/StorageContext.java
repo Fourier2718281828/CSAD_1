@@ -34,18 +34,21 @@ public class StorageContext implements HttpHandler {
             OperationParams params = HttpUtils.fromBody(exchange)
                     .or(() -> HttpUtils.extractParamsFromQuery(exchange))
                     .orElse(new OperationParams());
-            operation.execute(params);
             System.out.println("Request to " + uri + " with params: " + params);
+            operation.execute(params);
 
             final var result = operation.getParamsResult();
+            System.out.println("Result: " + result.orElse(null));
             final var toBody = result.orElse(null);
             final var code = result.isEmpty() ? 204
                     : requestMethod.equalsIgnoreCase("put") ? 201
                     : 200;
             HttpUtils.sendResponse(exchange, code, toBody);
         } catch (DataConflictException e) {
+            System.out.println("Data Conflict: " + e.getMessage());
             HttpUtils.sendResponse(exchange, 409);
         } catch (NotFoundException e) {
+            System.out.println("Not Found");
             HttpUtils.sendResponse(exchange, 404);
         } catch (CreationException | StorageException e) {
             throw new RuntimeException(e);

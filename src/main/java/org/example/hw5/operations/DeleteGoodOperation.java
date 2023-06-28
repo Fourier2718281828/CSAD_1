@@ -1,5 +1,6 @@
 package org.example.hw5.operations;
 
+import org.example.exceptions.storage.NotFoundException;
 import org.example.exceptions.storage.StorageException;
 import org.example.hw2.operations.Operation;
 import org.example.hw2.operations.OperationParams;
@@ -13,7 +14,12 @@ public class DeleteGoodOperation implements Operation {
     }
     @Override
     public void execute(OperationParams params) throws StorageException {
-
+        try {
+            var goodName = params.getGoodName();
+            storage.deleteGood(goodName);
+        } catch (StorageException e) {
+            throw new NotFoundException(e.getMessage());
+        }
     }
 
     @Override

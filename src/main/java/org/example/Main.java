@@ -1,7 +1,9 @@
 package org.example;
 
 import org.example.exceptions.CreationException;
+import org.example.exceptions.HolderException;
 import org.example.exceptions.storage.StorageException;
+import org.example.factories.operations.OperationFactoryInitializer;
 import org.example.hw2.goods.Good;
 import org.example.hw2.goods.Group;
 import org.example.hw2.goods.StandardGood;
@@ -13,7 +15,8 @@ import java.net.InetSocketAddress;
 import java.util.ArrayList;
 
 public class Main {
-    public static void main(String[] args) {
+    public static void main(String[] args) throws HolderException {
+        OperationFactoryInitializer.holdAllOperations();
         GroupedGoodStorage storage;
         try {
             storage = new RAMStorage();

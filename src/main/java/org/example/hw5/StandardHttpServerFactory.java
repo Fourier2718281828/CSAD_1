@@ -21,8 +21,8 @@ public class StandardHttpServerFactory implements DoubleParamFactory<Server, Gro
             var storageContext = new StorageContext(new OperationFactory(storage));
             storageContext.mapEndpointToOperation("GET", "/api/good/{id}", Operations.GET_GOOD);
             storageContext.mapEndpointToOperation("PUT", "/api/good", Operations.CREATE_GOOD);
-            storageContext.mapEndpointToOperation("POST", "/api/good{id}", Operations.UPDATE_GOOD);
-            storageContext.mapEndpointToOperation("DELETE", "/api/good{id}", Operations.DELETE_GOOD);
+            storageContext.mapEndpointToOperation("POST", "/api/good/{id}", Operations.UPDATE_GOOD);
+            storageContext.mapEndpointToOperation("DELETE", "/api/good/{id}", Operations.DELETE_GOOD);
             server.addContext("/login", new LoginContext());
             server.addContext("/api", storageContext);
             return server;

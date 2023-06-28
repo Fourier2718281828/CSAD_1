@@ -1,15 +1,14 @@
-package org.example.utilities;
+package org.example.utilities.holders;
 
 import org.example.exceptions.HolderException;
 
 import java.util.Map;
 import java.util.Optional;
-import java.util.TreeMap;
 
-public class StandardHolder<Key extends Comparable<Key>, Holdable>
+public class MapHolder<Key, Holdable>
         implements Holder<Key, Holdable> {
-    public StandardHolder() {
-        keyToHoldable = new TreeMap<>();
+    public MapHolder(Map<Key, Holdable> keyToHoldable) {
+        this.keyToHoldable = keyToHoldable;
     }
 
     @Override

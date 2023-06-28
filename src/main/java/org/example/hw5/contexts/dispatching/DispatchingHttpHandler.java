@@ -4,7 +4,6 @@ import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import org.example.utilities.HttpUtils;
 
-import java.io.IOException;
 import java.util.function.Consumer;
 
 public class DispatchingHttpHandler implements HttpHandler {
@@ -15,7 +14,7 @@ public class DispatchingHttpHandler implements HttpHandler {
     @Override
     public void handle(HttpExchange exchange) {
         final var requestType = exchange.getRequestMethod();
-        final var uri = exchange.getRequestURI().getPath();
+        final var uri = exchange.getRequestURI();
         final var processor = dispatcher.dispatch(requestType, uri);
         if(processor.isPresent())
             processor.get().accept(exchange);

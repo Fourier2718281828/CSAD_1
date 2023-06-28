@@ -9,7 +9,6 @@ import java.io.IOException;
 import java.util.InputMismatchException;
 import java.util.Map;
 import java.util.Optional;
-import java.util.TreeMap;
 
 public class HttpUtils {
     public static OperationParams fromJSON(byte[] bytes) throws IOException {
@@ -107,26 +106,16 @@ public class HttpUtils {
     }
 
     public static boolean hasEmptyQueryParams(HttpExchange exchange) {
-        var requestURI = exchange.getRequestURI();
-        return requestURI == null ||
-                requestURI.getQuery().isEmpty();
-    }
-
-    public static Map<String, String> paramsToMap(OperationParams params) {
-        return new TreeMap<>() {{
-                put("goodName", params.getGoodName());
-                put("groupName", params.getGroupName());
-                put("quantity", String.valueOf(params.getQuantity()));
-                put("price", String.valueOf(params.getPrice()));
-            }};
+        var requestQuery = exchange.getRequestURI().getQuery();
+        return requestQuery == null || requestQuery.isEmpty();
     }
 
     public static void sendResponse(HttpExchange exchange, int code, String message) {
-
+        sendResponseObject(exchange, code, message);
     }
 
     public static void sendResponse(HttpExchange exchange, int code, OperationParams body) {
-        sendResponseObject(exchange, code, paramsToMap(body));
+        sendResponseObject(exchange, code, body);
     }
 
     public static void sendResponse(HttpExchange exchange, int code) {
@@ -142,9 +131,10 @@ public class HttpUtils {
             } else {
                 bytes = new byte[0];
             }
-            exchange.sendResponseHeaders(code, bytes.length);
-            responseBody.write(bytes);
+            exchange.sendResponseHeaders(code, bytes.length == 0 ? -1 : bytes.length);
+            if(bytes.length != 0) responseBody.write(bytes);
         } catch (IOException e) {
+            System.err.println(e.getMessage());
             throw new RuntimeException(e);
         }
     }

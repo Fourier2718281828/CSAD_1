@@ -7,4 +7,9 @@ public enum Operations {
     ADD_GOOD_GROUP,
     ADD_GOOD_NAME_TO_GROUP,
     SET_GOOD_PRICE,
+
+    GET_GOOD,
+    CREATE_GOOD,
+    UPDATE_GOOD,
+    DELETE_GOOD,
 }

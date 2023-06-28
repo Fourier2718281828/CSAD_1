@@ -3,6 +3,10 @@ package org.example.factories.operations;
 import org.example.exceptions.HolderException;
 import org.example.hw2.operations.*;
 import org.example.hw2.storages.GroupedGoodStorage;
+import org.example.hw5.operations.CreateGoodOperation;
+import org.example.hw5.operations.DeleteGoodOperation;
+import org.example.hw5.operations.GetGoodOperation;
+import org.example.hw5.operations.UpdateGoodOperation;
 
 import java.util.function.Function;
 
@@ -30,6 +34,11 @@ public class OperationFactoryInitializer {
             case ADD_GOOD_GROUP -> AddGoodGroupOperation::new;
             case ADD_GOOD_NAME_TO_GROUP -> AddGoodNameToGroup::new;
             case SET_GOOD_PRICE -> SetGoodPriceOperation::new;
+
+            case GET_GOOD -> GetGoodOperation::new;
+            case CREATE_GOOD -> CreateGoodOperation::new;
+            case UPDATE_GOOD -> UpdateGoodOperation::new;
+            case DELETE_GOOD -> DeleteGoodOperation::new;
         };
     }
 }

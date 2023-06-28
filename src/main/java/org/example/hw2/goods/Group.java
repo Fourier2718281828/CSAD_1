@@ -1,6 +1,6 @@
 package org.example.hw2.goods;
 
-import org.example.exceptions.StorageException;
+import org.example.exceptions.storage.StorageException;
 
 import java.util.Collections;
 import java.util.Map;

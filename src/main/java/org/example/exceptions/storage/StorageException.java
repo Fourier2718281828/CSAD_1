@@ -1,4 +1,4 @@
-package org.example.exceptions;
+package org.example.exceptions.storage;
 
 public class StorageException extends Exception {
     public StorageException(String message) {

@@ -5,8 +5,8 @@ import java.util.Arrays;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
-public class In implements Criterion {
-    public In(String columnName, String... args) {
+public class In<Value> implements Criterion {
+    public In(String columnName, Value... args) {
         this.columnName = columnName;
         this.args = args;
     }
@@ -28,5 +28,5 @@ public class In implements Criterion {
     }
 
     private final String columnName;
-    private final String[] args;
+    private final Value[] args;
 }

@@ -2,7 +2,7 @@ package org.example.hw3;
 
 import org.example.exceptions.CreationException;
 import org.example.exceptions.HolderException;
-import org.example.exceptions.StorageException;
+import org.example.exceptions.storage.StorageException;
 import org.example.factories.interfaces.TripleParamFactory;
 import org.example.factories.operations.OperationFactoryInitializer;
 import org.example.hw2.basis.Receiver;
@@ -47,31 +47,26 @@ public class StoreServerUDP implements Server {
     }
 
     @Override
-    public void close() throws Exception {
-        stop();
+    public void stop() {
+        hasStarted = false;
         socket.close();
         ThreadUtils.shutDownThreadPool(threadPool,
                 () -> System.out.println("Waiting for TCP-server's thread pool to shut down"));
-    }
 
-    public void stop() {
-        hasStarted = false;
     }
 
     public boolean hasStarted() {
         return hasStarted;
     }
 
-    public static void main(String[] args) throws HolderException, StorageException {
+    public static void main(String[] args) throws HolderException, StorageException, SocketException {
         OperationFactoryInitializer.holdAllOperations();
         var storage = new RAMStorage();
         storage.createGroup(new Group("Products"));
         storage.addGoodToGroup(new StandardGood("Milk", 10, 10), "Products");
-        try (var server = new StoreServerUDP(ServerUtils.PORT, storage, new UDPReceiverFactory())) {
-            server.start();
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
+        var server = new StoreServerUDP(ServerUtils.PORT, storage, new UDPReceiverFactory());
+        server.start();
+        server.stop();
     }
 
     private volatile boolean hasStarted;

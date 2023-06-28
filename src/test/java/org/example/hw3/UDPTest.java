@@ -3,7 +3,7 @@ package org.example.hw3;
 import org.example.exceptions.ClientException;
 import org.example.exceptions.CreationException;
 import org.example.exceptions.HolderException;
-import org.example.exceptions.StorageException;
+import org.example.exceptions.storage.StorageException;
 import org.example.factories.codec.PacketCodecFactory;
 import org.example.factories.hw2.PacketFactory;
 import org.example.factories.operations.OperationFactoryInitializer;
@@ -52,9 +52,9 @@ class UDPTest {
     }
 
     @AfterEach
-    void tearDown() throws Exception {
+    void tearDown() {
         threadPool.shutdown();
-        server.close();
+        server.stop();
     }
 
     @Test

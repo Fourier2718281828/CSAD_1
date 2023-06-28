@@ -6,15 +6,15 @@ import org.example.factories.interfaces.SingleParamFactory;
 import org.example.hw2.operations.Operation;
 import org.example.hw2.operations.Operations;
 import org.example.hw2.storages.GroupedGoodStorage;
-import org.example.utilities.Holder;
-import org.example.utilities.StandardHolder;
+import org.example.utilities.holders.Holder;
+import org.example.utilities.holders.TreeHolder;
 
 import java.util.Optional;
 import java.util.function.Function;
 
 public class OperationFactory implements SingleParamFactory<Operation, Operations> {
     static {
-        holder = new StandardHolder<>();
+        holder = new TreeHolder<>();
     }
 
     public OperationFactory(GroupedGoodStorage storage) {

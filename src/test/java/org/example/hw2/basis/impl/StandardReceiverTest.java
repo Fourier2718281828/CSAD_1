@@ -2,7 +2,7 @@ package org.example.hw2.basis.impl;
 
 import org.example.exceptions.CreationException;
 import org.example.exceptions.HolderException;
-import org.example.exceptions.StorageException;
+import org.example.exceptions.storage.StorageException;
 import org.example.factories.hw2.PacketFactory;
 import org.example.factories.hw2.FakeReceiverFactory;
 import org.example.factories.operations.OperationFactoryInitializer;

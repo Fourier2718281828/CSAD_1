@@ -1,6 +1,6 @@
 package org.example.hw4;
 
-import org.example.exceptions.StorageException;
+import org.example.exceptions.storage.StorageException;
 import org.example.hw2.goods.Good;
 import org.example.hw2.goods.GoodsGroup;
 import org.example.hw2.goods.Group;
@@ -112,7 +112,7 @@ public class SQLiteStorage implements DataBase {
                 if(rowsModified != 1)
                     throw new StorageException("Cannot add the already existent good: " + good.getName());
             } catch (SQLException e) {
-                throw new RuntimeException(e);
+                throw new StorageException("Cannot add the already existent good: " + good.getName());
             }
         //}
     }

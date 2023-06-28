@@ -56,6 +56,12 @@ class OperationFactoryTest {
                 public Optional<Integer> getResult() {
                     return Optional.of(2);
                 }
+
+                @Override
+                public Optional<OperationParams> getParamsResult() {
+                    return Optional.empty();
+                }
+
             });
             fail("GetGoodQuantity enum val must have already been held. However it isn't.");
         } catch (HolderException ignored) {

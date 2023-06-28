@@ -8,14 +8,21 @@ import java.util.TreeSet;
 public class EndpointPathTemplate {
     public EndpointPathTemplate(String method, String templateURI) {
         this.method = method;
-        this.path = getPathFromTemplate(templateURI);
+        this.path = ridOfTrailingSlash(getPathFromTemplate(templateURI));
         this.queryParams = parseQueryParamsFromTemplate(templateURI);
     }
 
     public EndpointPathTemplate(String method, URI uri) {
         this.method = method;
-        this.path = uri.getPath();
+        this.path = ridOfTrailingSlash(uri.getPath());
+        System.out.println("URI.getPath() = " + uri.getPath());
         this.queryParams = parseQueryParamsFromURI(uri);
+    }
+
+    private String ridOfTrailingSlash(String path) {
+        return path.charAt(path.length() - 1) == '/'
+                ? path.substring(0, path.length() - 1)
+                : path;
     }
 
     private String getPathFromTemplate(String templateURI) {

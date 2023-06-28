@@ -67,7 +67,7 @@ class HttpUtilsTest {
     @Test
     void extractQueryParamsFromQuery() {
         {
-            final var uri = "groupName=group1&goodName=good1&quantity=123&price=12.32";
+            final var uri = "groupName=group1&id=good1&quantity=123&price=12.32";
             final var params = HttpUtils.extractParamsFromQuery(uri);
             assertTrue(params.isPresent());
             assertEquals(params.get().getGoodName(), "good1");
@@ -76,7 +76,7 @@ class HttpUtilsTest {
             assertEquals(params.get().getPrice(), 12.32);
         }
         {
-            final var uri = "goodName=good1&price=12.32&quantity=123&groupName=group1";
+            final var uri = "id=good1&price=12.32&quantity=123&groupName=group1";
             final var params = HttpUtils.extractParamsFromQuery(uri);
             assertTrue(params.isPresent());
             assertEquals(params.get().getGoodName(), "good1");
@@ -85,7 +85,7 @@ class HttpUtilsTest {
             assertEquals(params.get().getPrice(), 12.32);
         }
         {
-            final var uri = "goodName=good1&price=12.32";
+            final var uri = "id=good1&price=12.32";
             final var params = HttpUtils.extractParamsFromQuery(uri);
             assertTrue(params.isPresent());
             assertEquals(params.get().getGoodName(), "good1");
@@ -94,7 +94,7 @@ class HttpUtilsTest {
             assertEquals(params.get().getPrice(), 12.32);
         }
         {
-            final var uri = "something=som321&goodName=good1&otherNeedless=needless&price=12.32&unneededField=123";
+            final var uri = "something=som321&id=good1&otherNeedless=needless&price=12.32&unneededField=123";
             final var params = HttpUtils.extractParamsFromQuery(uri);
             assertTrue(params.isPresent());
             assertEquals(params.get().getGoodName(), "good1");

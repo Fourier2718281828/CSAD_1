@@ -8,7 +8,7 @@ import org.example.hw2.goods.Good;
 import org.example.hw2.goods.Group;
 import org.example.hw2.goods.StandardGood;
 import org.example.hw2.storages.GroupedGoodStorage;
-import org.example.hw2.storages.RAMStorage;
+import org.example.hw4.SQLiteStorage;
 import org.example.hw5.StandardHttpServerFactory;
 
 import java.net.InetSocketAddress;
@@ -19,7 +19,7 @@ public class Main {
         OperationFactoryInitializer.holdAllOperations();
         GroupedGoodStorage storage;
         try {
-            storage = new RAMStorage();
+            storage = SQLiteStorage.getInstance();
             storage.createGroup(new Group("Products"));
             var goods = new ArrayList<Good>();
             goods.add(new StandardGood("Good1", 1, 1.1));

@@ -112,7 +112,7 @@ public class SQLiteStorage implements DataBase {
                 if(rowsModified != 1)
                     throw new StorageException("Cannot add the already existent good: " + good.getName());
             } catch (SQLException e) {
-                throw new RuntimeException(e);
+                throw new StorageException("Cannot add the already existent good: " + good.getName());
             }
         //}
     }
